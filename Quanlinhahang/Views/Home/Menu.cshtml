@@ -22,8 +22,7 @@
                 id="search-box"
                 name="search"
                 value="@Model.Search"
-                placeholder="Tìm kiếm món ăn, combo..."
-            />
+                   placeholder="🔍Tìm kiếm món ăn, combo..." />
             @{
                 var items = new SelectList(Model.DanhMucList, "DanhMucId", "TenDanhMuc", Model.DanhMucId);
             }
@@ -34,7 +33,7 @@
 
     <div class="header-right">
         <button class="cart-btn" id="cartBtn">
-            Giỏ hàng
+            🛒Giỏ hàng
             <span id="cart-count">0</span>
         </button>
     </div>

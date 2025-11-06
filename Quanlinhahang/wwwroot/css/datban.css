@@ -612,4 +612,122 @@ select.form-control {
         text-align: right;
     }
 }
+/* ========== MODAL XÁC NHẬN ========== */
+#bookingModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease-in-out;
+    backdrop-filter: blur(4px);
+}
+
+    #bookingModal .modal-content {
+        background: #111;
+        color: #fff;
+        border-radius: 16px;
+        padding: 40px 36px 32px;
+        text-align: center;
+        width: 420px;
+        box-shadow: 0 0 35px rgba(255, 255, 255, 0.08);
+        animation: popIn 0.4s ease;
+    }
+
+    #bookingModal .modal-icon {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 22px;
+        position: relative;
+    }
+
+        #bookingModal .modal-icon svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            stroke: #22c55e;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            animation: rotate 0.6s ease-out, draw 0.6s ease-out 0.4s forwards;
+        }
+
+@keyframes rotate {
+    from {
+        transform: rotate(-90deg) scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes draw {
+    from {
+        stroke-dasharray: 0, 100;
+    }
+
+    to {
+        stroke-dasharray: 100, 0;
+    }
+}
+
+#bookingModal h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+#bookingModal p {
+    font-size: 15px;
+    color: #ccc;
+    margin-bottom: 26px;
+    line-height: 1.5;
+}
+
+#bookingModal .btn-close {
+    background: #fbbf24;
+    border: none;
+    padding: 10px 35px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    color: #000;
+    transition: all 0.3s ease;
+}
+
+    #bookingModal .btn-close:hover {
+        background: #facc15;
+        transform: translateY(-1px);
+    }
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
 /* ======================================================================== */

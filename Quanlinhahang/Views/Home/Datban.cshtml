@@ -101,16 +101,22 @@
 <!-- ========== MODAL THÔNG BÁO ĐẶT BÀN THÀNH CÔNG ========== -->
 <div class="modal" id="bookingModal">
     <div class="modal-content">
-        <div class="modal-icon">✓</div>
+        <div class="modal-icon">
+            <svg viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="25" stroke="#22c55e" stroke-width="3" fill="none" />
+                <path d="M16 27l6 6 14-14" stroke="#22c55e" stroke-width="3" fill="none" />
+            </svg>
+        </div>
         <h2>Đặt bàn thành công!</h2>
         <p>
-            Cảm ơn bạn đã đặt bàn tại Nhà hàng BTL.
+            Cảm ơn bạn đã đặt bàn tại Nhà hàng BTL.<br />
             Chúng tôi sẽ liên hệ xác nhận lại trong thời gian sớm nhất.
         </p>
         <button class="btn-close" id="closeModalBtn">Đóng</button>
     </div>
 </div>
 
+
 @section Scripts {
-    <script src="~/js/datban.js" asp-append-version="true"></script>
+    <script src="~/js/datban-jquery.js" asp-append-version="true"></script>
 }
