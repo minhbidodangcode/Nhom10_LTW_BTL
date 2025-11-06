@@ -1,0 +1,71 @@
+﻿@* Navbar chung cho toàn bộ trang *@
+<nav class="navbar">
+    <!-- Logo -->
+    <a asp-controller="Home" asp-action="GioiThieu" class="logo">
+        BTL
+    </a>
+
+    <!-- Nút mở menu trên mobile -->
+    <button class="nav-toggle" id="navToggle">&#9776;</button>
+
+    <!-- Menu chính -->
+    <ul class="nav-menu" id="navMenu">
+        <li><a asp-controller="Home" asp-action="GioiThieu">Giới thiệu</a></li>
+        <li><a asp-controller="Home" asp-action="Menu">Thực đơn</a></li>
+        <li><a asp-controller="Home" asp-action="DatBan">Đặt bàn</a></li>
+        <li><a href="#lien-he">Liên hệ</a></li>
+    </ul>
+
+    <!-- Khu user / đăng nhập -->
+    <div class="user-section">
+        <span id="userGreeting"></span>
+        <button class="login-btn" id="loginBtn">Đăng nhập</button>
+    </div>
+</nav>
+
+<!-- Modal đăng nhập -->
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeModal">&times;</button>
+
+        <div class="modal-header">
+            <h2>Đăng nhập</h2>
+            <p>Chào mừng bạn đến với Nhà hàng BTL</p>
+        </div>
+
+        <div id="loginError" class="error-message"></div>
+        <div id="loginSuccess" class="success-message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Tài khoản</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" name="username" placeholder="Nhập tài khoản" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required />
+                    <span class="toggle-password" id="togglePassword">👁</span>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" id="rememberMe" />
+                    <span>Ghi nhớ đăng nhập</span>
+                </label>
+                <a class="forgot-password">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit" class="submit-btn">Đăng nhập</button>
+
+            <div class="register-link">
+                Chưa có tài khoản?
+                <a>Đăng ký ngay</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,615 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #ffd700;
+    --dark-bg: #1a1a1a;
+    --darker-bg: #0d0d0d;
+    --text-light: #ffffff;
+    --text-gray: #b0b0b0;
+    --accent-red: #c94a4a;
+    --border-color: #333;
+    --success-green: #4caf50;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--darker-bg);
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header (nếu dùng riêng cho trang này) */
+.header {
+    background: var(--dark-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-light);
+    letter-spacing: 2px;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 2.5rem;
+}
+
+.nav-link {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+    .nav-link:hover,
+    .nav-link.active {
+        color: var(--primary-color);
+    }
+
+        .nav-link.active::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+.btn-login {
+    background: var(--primary-color);
+    color: var(--dark-bg);
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+/* Main Content */
+.main-content {
+    padding: 3rem 0;
+    min-height: calc(100vh - 100px);
+}
+
+.page-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--text-light);
+    letter-spacing: 2px;
+}
+
+/* Order Summary */
+.order-summary {
+    background: var(--dark-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid var(--border-color);
+}
+
+.summary-header {
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 1fr 1.2fr;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--darker-bg);
+    border-radius: 8px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.summary-col {
+    text-align: center;
+}
+
+.summary-body {
+    min-height: 100px;
+    padding: 1rem;
+}
+
+.empty-cart {
+    text-align: center;
+    color: var(--text-gray);
+    padding: 2rem;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 1.5rem 1rem;
+    border-top: 2px solid var(--border-color);
+    margin-top: 1rem;
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.total-amount {
+    color: var(--primary-color);
+}
+
+/* Booking Form */
+.booking-form {
+    background: var(--dark-bg);
+    border-radius: 12px;
+    padding: 3rem;
+    border: 1px solid var(--border-color);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+.form-control {
+    background: var(--darker-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-light);
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+    .form-control:focus {
+        outline: none;
+        color: #999;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: var(--text-gray);
+    }
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+select.form-control {
+    cursor: pointer;
+}
+
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2.5rem;
+}
+
+.btn-submit,
+.btn-reset {
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit {
+    background: var(--accent-red);
+    color: var(--text-light);
+}
+
+    .btn-submit:hover {
+        background: #a83d3d;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(201, 74, 74, 0.3);
+    }
+
+.btn-reset {
+    background: transparent;
+    color: var(--text-gray);
+    border: 2px solid var(--border-color);
+}
+
+    .btn-reset:hover {
+        background: var(--darker-bg);
+        border-color: var(--text-gray);
+    }
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+    .modal.active {
+        display: flex;
+    }
+
+.modal-content {
+    background: var(--dark-bg);
+    padding: 3rem;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 500px;
+    border: 1px solid var(--border-color);
+    animation: slideUp 0.3s ease;
+}
+
+.modal-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--success-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    margin: 0 auto 1.5rem;
+}
+
+.modal-content h2 {
+    margin-bottom: 1rem;
+    color: var(--text-light);
+}
+
+.modal-content p {
+    color: var(--text-gray);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.btn-close {
+    background: var(--primary-color);
+    color: var(--dark-bg);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+    .btn-close:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .nav-menu {
+        gap: 1.5rem;
+    }
+
+    .summary-header {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .summary-header {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .summary-col {
+        text-align: left;
+        padding: 0.5rem 0;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-form {
+        padding: 2rem 1.5rem;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-submit,
+    .btn-reset {
+        width: 100%;
+    }
+}
+
+/* ==== PATCH: ORDER SUMMARY (table only) =================================== */
+/* Căn cột header giống thân bảng */
+.summary-header {
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 1fr 1.2fr; /* STT | Món ăn | Giá | SL | Thành tiền */
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+    .summary-header .summary-col {
+        text-align: center;
+    }
+
+        .summary-header .summary-col:nth-child(2) {
+            text-align: left;
+        }
+
+        .summary-header .summary-col:nth-child(3) {
+            text-align: right;
+        }
+
+        .summary-header .summary-col:nth-child(5) {
+            text-align: right;
+        }
+
+/* Thân bảng: mỗi món là một hàng 5 cột, bo góc + viền nhẹ */
+.summary-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 1rem 0.5rem;
+}
+
+.summary-row {
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 1fr 1.2fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 12px 14px;
+    background: #121212;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.2s ease;
+}
+
+    .summary-row:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+        border-color: #444;
+    }
+
+/* Căn văn bản từng cột để thẳng với header */
+.summary-col {
+    text-align: center;
+    color: var(--text-light);
+}
+
+    .summary-col.stt {
+        opacity: 0.85;
+    }
+
+    .summary-col.name {
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .summary-col.price {
+        text-align: right;
+        color: var(--text-gray);
+    }
+
+    .summary-col.subtotal {
+        text-align: right;
+        font-weight: 800;
+        color: var(--primary-color);
+        white-space: nowrap;
+    }
+
+    /* Cụm số lượng: nút +/- tròn, input gọn */
+    .summary-col.qty {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+
+.btn-qty {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #3a3a3a;
+    background: #1b1b1b;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: 800;
+    line-height: 1;
+    transition: transform 0.08s ease, background 0.2s, border-color 0.2s;
+}
+
+    .btn-qty:hover {
+        background: #222;
+        border-color: #4a4a4a;
+    }
+
+    .btn-qty:active {
+        transform: scale(0.95);
+    }
+
+.input-qty {
+    width: 58px;
+    text-align: center;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 1px solid #3a3a3a;
+    background: #0f0f0f;
+    color: var(--text-light);
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+    .input-qty:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.12);
+        color: #999;
+        opacity: 1;
+    }
+
+/* Nút xoá trong cột Thành tiền (nếu có) */
+.summary-col.subtotal .btn-remove {
+    margin-left: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 0, 0, 0.18);
+    background: #1d1414;
+    color: var(--accent-red);
+    cursor: pointer;
+    font-weight: 800;
+    line-height: 1;
+}
+
+    .summary-col.subtotal .btn-remove:hover {
+        background: #261818;
+        border-color: rgba(255, 0, 0, 0.28);
+    }
+
+/* Hàng tổng tiền: rõ ràng, nổi bật số */
+.summary-total {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    padding: 1.25rem 0.75rem 0.75rem;
+    border-top: 2px solid var(--border-color);
+    margin-top: 0.5rem;
+}
+
+.total-amount {
+    color: var(--primary-color);
+    font-weight: 900;
+    font-size: 1.35rem;
+    letter-spacing: 0.25px;
+}
+
+/* Mobile: chuyển sang dạng thẻ 2 cột, ẩn header */
+@media (max-width: 768px) {
+    .summary-header {
+        display: none !important;
+    }
+
+    .summary-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 12px;
+    }
+
+    .summary-col.stt {
+        order: 0;
+        opacity: 0.7;
+    }
+
+    .summary-col.name {
+        order: 1;
+        grid-column: 1 / -1;
+    }
+
+    .summary-col.price {
+        order: 2;
+        text-align: left;
+        color: var(--text-gray);
+    }
+
+    .summary-col.qty {
+        order: 3;
+        justify-content: flex-start;
+    }
+
+    .summary-col.subtotal {
+        order: 4;
+        grid-column: 2 / -1;
+        text-align: right;
+    }
+}
+/* ======================================================================== */

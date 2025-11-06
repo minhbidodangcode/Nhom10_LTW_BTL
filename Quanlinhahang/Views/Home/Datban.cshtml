@@ -1,0 +1,116 @@
+﻿@{
+    ViewBag.Title = "Đặt bàn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content">
+    <div class="container">
+        <h1 class="page-title">Đặt bàn & Xác nhận đơn hàng</h1>
+
+        <!-- ========== TÓM TẮT ĐƠN HÀNG (LẤY TỪ TRANG MENU) ========== -->
+        <section class="order-summary">
+            <div class="summary-header">
+                <div class="summary-col">#</div>
+                <div class="summary-col">Món ăn</div>
+                <div class="summary-col">Giá</div>
+                <div class="summary-col">SL</div>
+                <div class="summary-col">Thành tiền</div>
+            </div>
+
+            <div class="summary-body" id="summaryBody">
+                <div class="empty-cart">
+                    Giỏ hàng đang trống. Vui lòng chọn món ở trang <a asp-action="Menu" asp-controller="Home">Thực đơn</a>.
+                </div>
+            </div>
+
+            <div class="summary-total">
+                <span>Tổng cộng:</span>
+                <span class="total-amount" id="summaryTotal">0₫</span>
+            </div>
+        </section>
+
+        <!-- ========== FORM ĐẶT BÀN ========== -->
+        <section class="booking-form">
+            <form id="bookingForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerName">Họ và tên</label>
+                        <input type="text" id="customerName" name="customerName"
+                               class="form-control" placeholder="Nhập họ và tên" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="tel" id="phone" name="phone"
+                               class="form-control" placeholder="Nhập số điện thoại" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email (không bắt buộc)</label>
+                        <input type="email" id="email" name="email"
+                               class="form-control" placeholder="Nhập email nếu có" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bookingDate">Ngày đặt</label>
+                        <input type="date" id="bookingDate" name="bookingDate"
+                               class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timeSlot">Khung giờ</label>
+                        <select id="timeSlot" name="timeSlot" class="form-control" required>
+                            <option value="">-- Chọn khung giờ --</option>
+                            <option value="Trua">Trưa (11:00 - 13:30)</option>
+                            <option value="Toi">Tối (18:00 - 21:30)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guestCount">Số lượng khách</label>
+                        <input type="number" id="guestCount" name="guestCount"
+                               class="form-control" min="1" max="50" value="2" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tableType">Loại bàn / phòng</label>
+                        <select id="tableType" name="tableType" class="form-control">
+                            <option value="">Không yêu cầu</option>
+                            <option value="Thuong">Bàn thường</option>
+                            <option value="Vip">Bàn VIP</option>
+                            <option value="PhongRieng">Phòng riêng</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="note">Ghi chú thêm</label>
+                        <textarea id="note" name="note" class="form-control"
+                                  placeholder="Ví dụ: cần ghép bàn, có trẻ nhỏ, dị ứng hải sản..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Xác nhận đặt bàn</button>
+                    <button type="reset" class="btn-reset">Làm mới</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+<!-- ========== MODAL THÔNG BÁO ĐẶT BÀN THÀNH CÔNG ========== -->
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+        <div class="modal-icon">✓</div>
+        <h2>Đặt bàn thành công!</h2>
+        <p>
+            Cảm ơn bạn đã đặt bàn tại Nhà hàng BTL.
+            Chúng tôi sẽ liên hệ xác nhận lại trong thời gian sớm nhất.
+        </p>
+        <button class="btn-close" id="closeModalBtn">Đóng</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/datban.js" asp-append-version="true"></script>
+}
