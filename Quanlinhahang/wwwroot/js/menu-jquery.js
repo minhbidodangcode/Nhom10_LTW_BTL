@@ -234,4 +234,31 @@ $(function () {
 
     // init display on load
     updateCartDisplay();
+    /* -------------------- CART DRAWER TOGGLE -------------------- */
+    $(function () {
+        const $drawer = $("#cartDrawer");
+        const $btnOpen = $("#cartBtn");
+        const $btnClose = $("#close-cart");
+
+        // Mở giỏ hàng
+        $btnOpen.on("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $drawer.addClass("active");
+        });
+
+        // Đóng giỏ hàng
+        $btnClose.on("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $drawer.removeClass("active");
+        });
+
+        // Click ra ngoài để đóng
+        $(document).on("click", function (e) {
+            if ($(e.target).closest("#cartDrawer, #cartBtn").length === 0) {
+                $drawer.removeClass("active");
+            }
+        });
+    });
 });
