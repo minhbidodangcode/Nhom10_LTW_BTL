@@ -18,8 +18,26 @@
 
     <!-- Khu user / đăng nhập -->
     <div class="user-section">
-        <span id="userGreeting"></span>
+
         <button class="login-btn" id="loginBtn">Đăng nhập</button>
+
+        <div class="profile-dropdown" id="profileDropdownContainer" style="display: none;">
+
+            <button class="profile-toggle" id="profileToggleBtn">
+                <img src="~/images/profile-icon.png" alt="Icon" class="profile-icon" />
+                <span id="userGreetingName"></span>
+            </button>
+
+            <div class="dropdown-menu" id="profileDropdownMenu">
+                <ul>
+                    <li><a asp-controller="Account" asp-action="Info">Thông tin tài khoản</a></li>
+                    <li><a asp-controller="Account" asp-action="History">Lịch sử</a></li>
+                    <li><a asp-controller="Account" asp-action="Vouchers">Voucher</a></li>
+                    <li><a href="#" id="logoutLink">Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
+
     </div>
 </nav>
 

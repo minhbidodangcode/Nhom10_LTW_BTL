@@ -1,14 +1,13 @@
 /* ================================
-   NAVBAR.JS - ĐÃ SỬA LỖI VÀ TỐI ƯU HÓA
+   NAVBAR.JS - PHIÊN BẢN CẬP NHẬT (Dropdown)
    ================================ */
 
 $(document).ready(function () {
 
     // =========================================
-    // 1. KHAI BÁO BIẾN (Tất cả ở đây)
+    // 1. KHAI BÁO BIẾN
     // =========================================
     const $loginBtn = $("#loginBtn");
-    const $userGreeting = $("#userGreeting");
 
     // Biến cho Modal Đăng nhập
     const $loginModal = $("#loginModal");
@@ -22,11 +21,17 @@ $(document).ready(function () {
     // Biến cho Modal Đăng ký
     const $registerModal = $("#registerModal");
 
+    // Biến cho Profile Dropdown (MỚI)
+    const $profileContainer = $("#profileDropdownContainer");
+    const $profileToggleBtn = $("#profileToggleBtn");
+    const $profileDropdownMenu = $("#profileDropdownMenu");
+    const $userGreetingName = $("#userGreetingName");
+
     // Biến chung
     const $navbar = $(".navbar");
 
     // =========================================
-    // 2. LOGIC AUTH STATE (Giữ nguyên)
+    // 2. LOGIC AUTH STATE
     // =========================================
     function saveAuthState(user, remember) {
         const data = JSON.stringify({
@@ -54,25 +59,20 @@ $(document).ready(function () {
             null;
     }
 
-    /* Áp giao diện theo trạng thái */
+    /* === CẬP NHẬT applyAuthUI === */
     function applyAuthUI() {
         const authRaw = getAuthState();
-        const $logoutBtn = $("#logoutBtn"); // Vẫn kiểm tra ở đây vì nó được tạo động
 
         if (authRaw) {
+            // ĐÃ ĐĂNG NHẬP
             const auth = JSON.parse(authRaw);
-            $userGreeting.text(`Xin chào ${auth.fullName} 👋`).show();
-            if ($logoutBtn.length === 0) {
-                const logoutHtml = '<button class="login-btn" id="logoutBtn">Đăng xuất</button>';
-                $("#userGreeting").after(logoutHtml);
-            } else {
-                $logoutBtn.show();
-            }
-            $loginBtn.hide();
+            $userGreetingName.text(auth.fullName); // Cập nhật tên
+            $profileContainer.show(); // Hiển thị khu vực profile
+            $loginBtn.hide(); // Ẩn nút "Đăng nhập"
         } else {
-            $userGreeting.empty().hide();
-            $logoutBtn.hide();
-            $loginBtn.show();
+            // CHƯA ĐĂNG NHẬP
+            $profileContainer.hide(); // Ẩn khu vực profile
+            $loginBtn.show(); // Hiển thị nút "Đăng nhập"
         }
     }
 
@@ -95,8 +95,9 @@ $(document).ready(function () {
     function handleLogout() {
         if (confirm("Bạn có chắc muốn đăng xuất?")) {
             clearAuthState();
-            applyAuthUI();
-            alert("Đăng xuất thành công! Hẹn gặp lại! 👋");
+            applyAuthUI(); // Cập nhật lại UI
+            // (Tùy chọn: Chuyển hướng về trang chủ)
+            // window.location.href = "/"; 
         }
     }
 
@@ -145,9 +146,8 @@ $(document).ready(function () {
         $rememberMe.prop("checked", true);
     }
 
-    // Chạy các hàm khởi tạo
     setupMobileNav();
-    applyAuthUI();
+    applyAuthUI(); // Chạy ngay khi tải trang
 
     // =========================================
     // 5. GẮN SỰ KIỆN (Event Handlers)
@@ -183,17 +183,14 @@ $(document).ready(function () {
     /* Xử lý Submit Form Đăng nhập */
     $loginForm.on("submit", function (e) {
         e.preventDefault();
-
         const formData = {
             Username: $usernameInput.val().trim(),
             Password: $passwordInput.val(),
             RememberMe: $rememberMe.is(":checked")
         };
-
         if (formData.Username === "" || formData.Password === "") {
             return showError("Vui lòng nhập tài khoản và mật khẩu.");
         }
-
         $.ajax({
             url: "/Account/Login",
             type: "POST",
@@ -207,16 +204,14 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success && response.user) {
                     showSuccess("Đăng nhập thành công! Chào mừng " + response.user.fullName + " 👋");
-
                     if (formData.RememberMe) {
                         localStorage.setItem("rememberedUsername", formData.Username);
                     } else {
                         localStorage.removeItem("rememberedUsername");
                     }
                     saveAuthState(response.user, formData.RememberMe);
-
                     setTimeout(() => {
-                        applyAuthUI();
+                        applyAuthUI(); // Cập nhật Navbar
                         $loginModal.removeClass("active");
                         $loginForm.trigger("reset");
                         $loginSuccess.hide();
@@ -237,8 +232,26 @@ $(document).ready(function () {
         });
     });
 
-    /* Xử lý Đăng xuất (Dùng event delegation) */
-    $(document).on("click", "#logoutBtn", handleLogout);
+    /* === CẬP NHẬT: Xử lý Đăng xuất === */
+    // Sự kiện click Đăng xuất giờ sẽ gắn vào #logoutLink (thay vì #logoutBtn)
+    $(document).on("click", "#logoutLink", function (e) {
+        e.preventDefault(); // Ngăn link tự nhảy trang
+        $profileDropdownMenu.slideUp(200); // Đóng menu trước
+        handleLogout();
+    });
+
+    /* === MỚI: Xử lý trượt menu profile === */
+    $profileToggleBtn.on("click", function () {
+        $profileDropdownMenu.slideToggle(200); // 200ms
+    });
+
+    // (Tùy chọn) Đóng menu khi click ra bên ngoài
+    $(document).on("click", function (event) {
+        // Kiểm tra xem click có nằm ngoài .profile-dropdown không
+        if (!$profileDropdownMenu.is(":hidden") && !$(event.target).closest('#profileDropdownContainer').length) {
+            $profileDropdownMenu.slideUp(200);
+        }
+    });
 
     /* Chuyển sang Modal Đăng ký */
     $("#registerLink").on("click", function (e) {
@@ -263,15 +276,10 @@ $(document).ready(function () {
         e.preventDefault();
         const target = $(this).attr("href");
         const $targetSection = $(target);
-
         if ($targetSection.length) {
-            $("html, body").animate({
-                scrollTop: $targetSection.offset().top
-            }, 500);
+            $("html, body").animate({ scrollTop: $targetSection.offset().top }, 500);
         } else {
-            $("html, body").animate({
-                scrollTop: $(document).height()
-            }, 500);
+            $("html, body").animate({ scrollTop: $(document).height() }, 500);
         }
     });
 
