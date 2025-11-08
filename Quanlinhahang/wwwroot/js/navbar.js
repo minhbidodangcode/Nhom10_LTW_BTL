@@ -1,6 +1,32 @@
+/* ================================
+   NAVBAR.JS - ĐÃ SỬA LỖI VÀ TỐI ƯU HÓA
+   ================================ */
+
 $(document).ready(function () {
+
     // =========================================
-    // 1. AUTH STATE (giữ đăng nhập giữa các trang)
+    // 1. KHAI BÁO BIẾN (Tất cả ở đây)
+    // =========================================
+    const $loginBtn = $("#loginBtn");
+    const $userGreeting = $("#userGreeting");
+
+    // Biến cho Modal Đăng nhập
+    const $loginModal = $("#loginModal");
+    const $loginForm = $("#loginForm");
+    const $usernameInput = $("#username");
+    const $passwordInput = $("#password");
+    const $rememberMe = $("#rememberMe");
+    const $errorMessage = $("#loginError");
+    const $loginSuccess = $("#loginSuccess");
+
+    // Biến cho Modal Đăng ký
+    const $registerModal = $("#registerModal");
+
+    // Biến chung
+    const $navbar = $(".navbar");
+
+    // =========================================
+    // 2. LOGIC AUTH STATE (Giữ nguyên)
     // =========================================
     function saveAuthState(user, remember) {
         const data = JSON.stringify({
@@ -31,18 +57,14 @@ $(document).ready(function () {
     /* Áp giao diện theo trạng thái */
     function applyAuthUI() {
         const authRaw = getAuthState();
-        const $loginBtn = $("#loginBtn");
-        const $logoutBtn = $("#logoutBtn"); // Cần thêm nút Logout vào HTML
-        const $userGreeting = $("#userGreeting");
+        const $logoutBtn = $("#logoutBtn"); // Vẫn kiểm tra ở đây vì nó được tạo động
 
         if (authRaw) {
             const auth = JSON.parse(authRaw);
             $userGreeting.text(`Xin chào ${auth.fullName} 👋`).show();
-            // Nếu chưa có nút Logout trong HTML, thêm nó vào
             if ($logoutBtn.length === 0) {
                 const logoutHtml = '<button class="login-btn" id="logoutBtn">Đăng xuất</button>';
                 $("#userGreeting").after(logoutHtml);
-                $("#logoutBtn").on("click", handleLogout);
             } else {
                 $logoutBtn.show();
             }
@@ -55,113 +77,21 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // 2. DỮ LIỆU TÀI KHOẢN DEMO (Tạm thời)
-    // =========================================
-    // Lưu ý: Trong dự án .NET thực tế, phần này sẽ gọi API/Controller
-    const validAccounts = [
-        { username: "admin", password: "admin123", fullName: "Admin" },
-        { username: "user1", password: "pass123", fullName: "User One", email: "user1@btl.com" },
-        { username: "demo", password: "demo123", fullName: "Demo User", email: "demo@btl.com" },
-    ];
-
-    // =========================================
-    // 3. HIỆU ỨNG & MODAL
+    // 3. HÀM TRỢ GIÚP (Helpers)
     // =========================================
 
-    /* Hiệu ứng Scroll Navbar */
-    const $navbar = $(".navbar"); // Sử dụng class .navbar cho tiện
-    if ($navbar.length) {
-        $(window).on("scroll", function () {
-            if ($(window).scrollTop() > 50) {
-                $navbar.addClass("scrolled");
-            } else {
-                $navbar.removeClass("scrolled");
-            }
-        });
-    }
-
-    /* Mở/Đóng Modal Đăng nhập */
-    const $loginModal = $("#loginModal");
-    const $errorMessage = $("#loginError"); // Đổi từ errorMessage thành loginError
-    const $loginSuccess = $("#loginSuccess");
-
-    $("#loginBtn").on("click", function () {
-        $loginModal.addClass("active");
-        $errorMessage.hide().empty();
-        $loginSuccess.hide().empty();
-    });
-
-    $("#closeModal, #loginModal").on("click", function (e) {
-        // Chỉ đóng modal khi click vào nút đóng hoặc backdrop
-        if ($(e.target).is("#closeModal") || $(e.target).is("#loginModal")) {
-            $loginModal.removeClass("active");
-            $errorMessage.hide().empty();
-            $loginSuccess.hide().empty();
-        }
-    });
-
-    /* Toggle Mật khẩu */
-    $("#togglePassword").on("click", function () {
-        const $passwordInput = $("#password");
-        if ($passwordInput.attr("type") === "password") {
-            $passwordInput.attr("type", "text");
-            $(this).text("🙈");
-        } else {
-            $passwordInput.attr("type", "password");
-            $(this).text("👁️");
-        }
-    });
-
-    // =========================================
-    // 4. LOGIC ĐĂNG NHẬP
-    // =========================================
+    /* Hàm cho Login Modal */
     function showError(msg) {
         $errorMessage.text(msg).slideDown();
         $loginSuccess.slideUp();
     }
 
-    // Load tên đăng nhập đã ghi nhớ
-    const $usernameInput = $("#username");
-    const $passwordInput = $("#password");
-    const $rememberMe = $("#rememberMe");
-
-    const savedUsername = localStorage.getItem("rememberedUsername");
-    if (savedUsername) {
-        $usernameInput.val(savedUsername);
-        $rememberMe.prop("checked", true);
+    function showSuccess(msg) {
+        $loginSuccess.text(msg).slideDown();
+        $errorMessage.slideUp();
     }
 
-    $("#loginForm").on("submit", function (e) {
-        e.preventDefault();
-        const username = $usernameInput.val().trim();
-        const password = $passwordInput.val();
-        const remember = $rememberMe.is(":checked");
-
-        // Tìm kiếm tài khoản
-        const account = validAccounts.find(
-            (acc) => acc.username === username && acc.password === password
-        );
-
-        if (!account) return showError("Sai tài khoản hoặc mật khẩu!");
-
-        // Lưu/Xóa tên đăng nhập đã ghi nhớ
-        if (remember) {
-            localStorage.setItem("rememberedUsername", username);
-        } else {
-            localStorage.removeItem("rememberedUsername");
-        }
-
-        saveAuthState(account, remember);
-        applyAuthUI();
-
-        alert(`Đăng nhập thành công! Chào mừng ${account.fullName}! 🎉`);
-        $loginModal.removeClass("active");
-        $(this).trigger("reset");
-    });
-
-    // =========================================
-    // 5. LOGIC ĐĂNG XUẤT
-    // =========================================
+    /* Hàm Đăng xuất */
     function handleLogout() {
         if (confirm("Bạn có chắc muốn đăng xuất?")) {
             clearAuthState();
@@ -169,32 +99,8 @@ $(document).ready(function () {
             alert("Đăng xuất thành công! Hẹn gặp lại! 👋");
         }
     }
-    // Gắn sự kiện cho nút logout ngay từ đầu (hoặc sau khi được thêm vào DOM bởi applyAuthUI)
-    $(document).on("click", "#logoutBtn", handleLogout);
 
-    // =========================================
-    // 6. LIÊN HỆ CUỘN MƯỢT
-    // =========================================
-    $('a[href="#lien-he"]').on("click", function (e) {
-        e.preventDefault();
-        const target = $(this).attr("href");
-        const $targetSection = $(target);
-
-        if ($targetSection.length) {
-            $("html, body").animate({
-                scrollTop: $targetSection.offset().top
-            }, 500);
-        } else {
-            // Cuộn xuống cuối trang nếu không tìm thấy ID #lien-he
-            $("html, body").animate({
-                scrollTop: $(document).height()
-            }, 500);
-        }
-    });
-
-    // =========================================
-    // 7. NAVBAR MOBILE TOGGLE (Chuyển sang jQuery)
-    // =========================================
+    /* Hàm Mobile Nav */
     function setupMobileNav() {
         const $navMenu = $(".nav-menu");
         const $navToggle = $("#navToggle");
@@ -229,28 +135,144 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // 8. KHỞI CHẠY CHUNG
+    // 4. KHỞI CHẠY (Initialization)
     // =========================================
+
+    // Load tên đăng nhập đã ghi nhớ
+    const savedUsername = localStorage.getItem("rememberedUsername");
+    if (savedUsername) {
+        $usernameInput.val(savedUsername);
+        $rememberMe.prop("checked", true);
+    }
+
+    // Chạy các hàm khởi tạo
     setupMobileNav();
     applyAuthUI();
 
-    const $registerModal = $("#registerModal");
-    // const $registerError = $("#registerError"); // Cần thiết nếu bạn muốn reset thông báo
+    // =========================================
+    // 5. GẮN SỰ KIỆN (Event Handlers)
+    // =========================================
 
-    // Gắn sự kiện click cho link "Đăng ký ngay"
-    $("#registerLink").on("click", function (e) {
+    /* Mở Modal Đăng nhập */
+    $loginBtn.on("click", function () {
+        $loginModal.addClass("active");
+        $errorMessage.hide().empty();
+        $loginSuccess.hide().empty();
+    });
+
+    /* Đóng Modal Đăng nhập */
+    $("#closeModal, #loginModal").on("click", function (e) {
+        if ($(e.target).is("#closeModal") || $(e.target).is("#loginModal")) {
+            $loginModal.removeClass("active");
+            $errorMessage.hide().empty();
+            $loginSuccess.hide().empty();
+        }
+    });
+
+    /* Toggle Mật khẩu (Login) */
+    $("#togglePassword").on("click", function () {
+        if ($passwordInput.attr("type") === "password") {
+            $passwordInput.attr("type", "text");
+            $(this).text("🙈");
+        } else {
+            $passwordInput.attr("type", "password");
+            $(this).text("👁️");
+        }
+    });
+
+    /* Xử lý Submit Form Đăng nhập */
+    $loginForm.on("submit", function (e) {
         e.preventDefault();
 
-        // Đóng Login Modal
-        $loginModal.removeClass("active");
+        const formData = {
+            Username: $usernameInput.val().trim(),
+            Password: $passwordInput.val(),
+            RememberMe: $rememberMe.is(":checked")
+        };
 
-        // Mở Register Modal
-        $registerModal.addClass("active");
+        if (formData.Username === "" || formData.Password === "") {
+            return showError("Vui lòng nhập tài khoản và mật khẩu.");
+        }
 
-        // (Tùy chọn) Reset trạng thái thông báo và form đăng ký
-        // if ($registerError.length) $registerError.hide().empty();
-        // if ($registerSuccess.length) $registerSuccess.hide().empty();
-        // if ($("#registerForm").length) $("#registerForm").trigger("reset");
+        $.ajax({
+            url: "/Account/Login",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            beforeSend: function () {
+                $loginForm.find("button[type='submit']").prop("disabled", true).text("Đang đăng nhập...");
+                $errorMessage.slideUp();
+                $loginSuccess.slideUp();
+            },
+            success: function (response) {
+                if (response.success && response.user) {
+                    showSuccess("Đăng nhập thành công! Chào mừng " + response.user.fullName + " 👋");
+
+                    if (formData.RememberMe) {
+                        localStorage.setItem("rememberedUsername", formData.Username);
+                    } else {
+                        localStorage.removeItem("rememberedUsername");
+                    }
+                    saveAuthState(response.user, formData.RememberMe);
+
+                    setTimeout(() => {
+                        applyAuthUI();
+                        $loginModal.removeClass("active");
+                        $loginForm.trigger("reset");
+                        $loginSuccess.hide();
+                    }, 1500);
+                } else {
+                    showError(response.message || "Đăng nhập thất bại.");
+                    $loginForm.find("button[type='submit']").prop("disabled", false).text("Đăng nhập");
+                }
+            },
+            error: function (xhr) {
+                let errorMsg = "Lỗi kết nối Server.";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                showError(errorMsg);
+                $loginForm.find("button[type='submit']").prop("disabled", false).text("Đăng nhập");
+            }
+        });
     });
-});
 
+    /* Xử lý Đăng xuất (Dùng event delegation) */
+    $(document).on("click", "#logoutBtn", handleLogout);
+
+    /* Chuyển sang Modal Đăng ký */
+    $("#registerLink").on("click", function (e) {
+        e.preventDefault();
+        $loginModal.removeClass("active");
+        $registerModal.addClass("active");
+    });
+
+    /* Hiệu ứng Scroll Navbar */
+    if ($navbar.length) {
+        $(window).on("scroll", function () {
+            if ($(window).scrollTop() > 50) {
+                $navbar.addClass("scrolled");
+            } else {
+                $navbar.removeClass("scrolled");
+            }
+        });
+    }
+
+    /* Cuộn mượt đến Liên hệ */
+    $('a[href="#lien-he"]').on("click", function (e) {
+        e.preventDefault();
+        const target = $(this).attr("href");
+        const $targetSection = $(target);
+
+        if ($targetSection.length) {
+            $("html, body").animate({
+                scrollTop: $targetSection.offset().top
+            }, 500);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(document).height()
+            }, 500);
+        }
+    });
+
+});

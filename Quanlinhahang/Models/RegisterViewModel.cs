@@ -1,6 +1,7 @@
 ﻿// Models/ViewModels/RegisterViewModel.cs
 using System.ComponentModel.DataAnnotations;
 
+namespace Quanlinhahang.Models;
 public class RegisterViewModel
 {
     // Thông tin Khách hàng

@@ -1,5 +1,4 @@
-﻿// Controllers/AccountController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quanlinhahang.Models; // Namespace chứa TaiKhoan, KhachHang
 using System.Security.Cryptography; // Ví dụ đơn giản cho hashing (KHÔNG DÙNG TRONG THỰC TẾ)
@@ -86,6 +85,65 @@ public class AccountController : Controller
                 return StatusCode(500, new { success = false, message = errorMessage });
             }
         }
+    }
+
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login([FromBody] LoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        // 1. Tìm tài khoản
+        var taiKhoan = await _context.TaiKhoans
+            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+
+        if (taiKhoan == null)
+        {
+            return Unauthorized(new { success = false, message = "Sai tài khoản hoặc mật khẩu." });
+        }
+
+        // 2. Kiểm tra mật khẩu
+        var inputPasswordHash = HashPassword(model.Password); // Dùng lại hàm HashPassword
+        if (taiKhoan.MatKhauHash != inputPasswordHash)
+        {
+            return Unauthorized(new { success = false, message = "Sai tài khoản hoặc mật khẩu." });
+        }
+
+        // 3. Đăng nhập thành công, lấy Họ Tên để chào
+        string fullName = taiKhoan.TenDangNhap; // Tên mặc định
+
+        if (taiKhoan.VaiTro == "Customer")
+        {
+            // Tìm khách hàng tương ứng
+            var khachHang = await _context.KhachHangs
+                .FirstOrDefaultAsync(k => k.TaiKhoanId == taiKhoan.TaiKhoanId);
+            if (khachHang != null)
+            {
+                fullName = khachHang.HoTen;
+            }
+        }
+        else if (taiKhoan.VaiTro == "Admin" || taiKhoan.VaiTro == "Staff")
+        {
+            // Tìm nhân viên tương ứng
+            var nhanVien = await _context.NhanViens
+                .FirstOrDefaultAsync(nv => nv.TaiKhoanId == taiKhoan.TaiKhoanId);
+            if (nhanVien != null)
+            {
+                fullName = nhanVien.HoTen;
+            }
+        }
+
+        // 4. Trả về thông tin cho JavaScript
+        var userResponse = new
+        {
+            username = taiKhoan.TenDangNhap,
+            fullName = fullName,
+            role = taiKhoan.VaiTro
+        };
+
+        return Json(new { success = true, user = userResponse });
     }
 
     [HttpGet("Dangki")] 
