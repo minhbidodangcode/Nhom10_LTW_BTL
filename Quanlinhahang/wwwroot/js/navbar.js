@@ -234,77 +234,23 @@ $(document).ready(function () {
     setupMobileNav();
     applyAuthUI();
 
-    // =========================================
-    // 9. LOGIC ĐĂNG KÝ
-    // =========================================
     const $registerModal = $("#registerModal");
-    const $registerError = $("#registerError");
-    const $registerSuccess = $("#registerSuccess");
-    const $registerForm = $("#registerForm");
+    // const $registerError = $("#registerError"); // Cần thiết nếu bạn muốn reset thông báo
 
-    function showRegisterError(msg) {
-        $registerError.text(msg).slideDown();
-        $registerSuccess.slideUp();
-    }
-    function showRegisterSuccess(msg) {
-        $registerSuccess.text(msg).slideDown();
-        $registerError.slideUp();
-    }
-
-    // Mở Modal Đăng ký
-    $(document).on("click", ".register-link a", function (e) {
+    // Gắn sự kiện click cho link "Đăng ký ngay"
+    $("#registerLink").on("click", function (e) {
         e.preventDefault();
+
+        // Đóng Login Modal
         $loginModal.removeClass("active");
+
+        // Mở Register Modal
         $registerModal.addClass("active");
-        $registerError.hide().empty();
-        $registerSuccess.hide().empty();
-    });
 
-    // Đóng Modal Đăng ký
-    $(document).on("click", "#closeRegisterModal, #registerModal", function (e) {
-        if ($(e.target).is("#closeRegisterModal") || $(e.target).is("#registerModal")) {
-            $registerModal.removeClass("active");
-            $registerForm.trigger("reset");
-        }
-    });
-
-    // Chuyển về Đăng nhập
-    $(document).on("click", "#backToLogin", function (e) {
-        e.preventDefault();
-        $registerModal.removeClass("active");
-        $loginModal.addClass("active");
-    });
-
-    // Xử lý submit Đăng ký
-    $registerForm.on("submit", function (e) {
-        e.preventDefault();
-        const fullName = $("#regFullName").val().trim();
-        const email = $("#regEmail").val().trim();
-        const username = $("#regUsername").val().trim();
-        const password = $("#regPassword").val();
-        const confirmPassword = $("#regConfirmPassword").val();
-
-        if (username.length < 4) return showRegisterError("Tên đăng nhập phải có ít nhất 4 ký tự!");
-        if (password.length < 6) return showRegisterError("Mật khẩu phải có ít nhất 6 ký tự!");
-        if (password !== confirmPassword) return showRegisterError("Mật khẩu xác nhận không khớp!");
-
-        if (validAccounts.find((a) => a.username === username)) {
-            return showRegisterError("Tên đăng nhập đã tồn tại!");
-        }
-        if (validAccounts.find((a) => a.email === email)) {
-            return showRegisterError("Email đã được sử dụng!");
-        }
-
-        // **Lưu ý quan trọng**: Trong dự án .NET Core MVC, bước này phải gọi **AJAX POST** // đến Controller để lưu vào bảng KhachHang và TaiKhoan.
-        validAccounts.push({ username, password, fullName, email });
-        showRegisterSuccess(`Đăng ký thành công! Chào mừng ${fullName} 🎉`);
-
-        setTimeout(() => {
-            $registerForm.trigger("reset");
-            $registerModal.removeClass("active");
-            $loginModal.addClass("active");
-            $("#username").val(username); // Điền sẵn tên đăng nhập
-        }, 2000);
+        // (Tùy chọn) Reset trạng thái thông báo và form đăng ký
+        // if ($registerError.length) $registerError.hide().empty();
+        // if ($registerSuccess.length) $registerSuccess.hide().empty();
+        // if ($("#registerForm").length) $("#registerForm").trigger("reset");
     });
 });
 

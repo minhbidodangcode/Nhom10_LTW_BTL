@@ -13,6 +13,11 @@ public partial class KhachHang
     [Column("KhachHangID")]
     public int KhachHangId { get; set; }
 
+    public int? TaiKhoanId { get; set; }
+    [ForeignKey("TaiKhoanId")]
+    [InverseProperty("KhachHangs")] // Cần thêm InverseProperty KhachHangs vào TaiKhoan
+    public virtual TaiKhoan? TaiKhoan { get; set; }
+
     [StringLength(100)]
     public string HoTen { get; set; } = null!;
 

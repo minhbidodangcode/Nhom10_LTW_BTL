@@ -34,4 +34,8 @@ public partial class TaiKhoan
 
     [InverseProperty("TaiKhoan")]
     public virtual ICollection<NhanVien> NhanViens { get; set; } = new List<NhanVien>();
+
+    [InverseProperty("TaiKhoan")]
+    public virtual ICollection<KhachHang> KhachHangs { get; set; } = new List<KhachHang>();
+
 }
