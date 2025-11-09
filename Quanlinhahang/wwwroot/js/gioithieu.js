@@ -24,28 +24,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-document.addEventListener("DOMContentLoaded", function () {
-  // Tải file navbar.html
-  fetch("../navbar/navbarfinal.html") // <-- CHỈNH LẠI ĐƯỜNG DẪN NÀY
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Không thể tải navbar.html");
-      }
-      return response.text();
-    })
-    .then((data) => {
-      // Gắn nội dung navbar vào div có id="navbar-container"
-      document.getElementById("navbar-container").innerHTML = data;
-
-      // Sau khi chèn navbar, nạp thêm CSS & JS của navbar nếu cần
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "../navbar/navbarfinalcss.css";
-      document.head.appendChild(link);
-
-      const script = document.createElement("script");
-      script.src = "../navbar/navbarfinaljs.js";
-      document.body.appendChild(script);
-    })
-    .catch((error) => console.error("Lỗi khi tải navbar:", error));
-});

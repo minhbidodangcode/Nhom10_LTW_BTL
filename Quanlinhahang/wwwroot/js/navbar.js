@@ -1,7 +1,49 @@
 /* ================================
    NAVBAR.JS - PHIÊN BẢN CẬP NHẬT (Dropdown)
    ================================ */
+function getAuthState() {
+    return sessionStorage.getItem("authUser") ||
+        localStorage.getItem("authUser") ||
+        null;
+}
 
+function saveAuthState(user, remember) {
+    const data = JSON.stringify({
+        username: user.username,
+        fullName: user.fullName || user.username,
+        ts: Date.now(),
+    });
+    if (remember) {
+        localStorage.setItem("authUser", data);
+        sessionStorage.removeItem("authUser");
+    } else {
+        sessionStorage.setItem("authUser", data);
+        localStorage.removeItem("authUser");
+    }
+}
+
+function clearAuthState() {
+    localStorage.removeItem("authUser");
+    sessionStorage.removeItem("authUser");
+}
+
+/* Áp giao diện theo trạng thái */
+function applyAuthUI() {
+    const authRaw = getAuthState();
+    const $loginBtn = $("#loginBtn");
+    const $profileContainer = $("#profileDropdownContainer");
+    const $userGreetingName = $("#userGreetingName");
+
+    if (authRaw) {
+        const auth = JSON.parse(authRaw);
+        $userGreetingName.text(auth.fullName);
+        $profileContainer.show();
+        $loginBtn.hide();
+    } else {
+        $profileContainer.hide();
+        $loginBtn.show();
+    }
+}
 $(document).ready(function () {
 
     // =========================================
@@ -29,52 +71,6 @@ $(document).ready(function () {
 
     // Biến chung
     const $navbar = $(".navbar");
-
-    // =========================================
-    // 2. LOGIC AUTH STATE
-    // =========================================
-    function saveAuthState(user, remember) {
-        const data = JSON.stringify({
-            username: user.username,
-            fullName: user.fullName || user.username,
-            ts: Date.now(),
-        });
-        if (remember) {
-            localStorage.setItem("authUser", data);
-            sessionStorage.removeItem("authUser");
-        } else {
-            sessionStorage.setItem("authUser", data);
-            localStorage.removeItem("authUser");
-        }
-    }
-
-    function clearAuthState() {
-        localStorage.removeItem("authUser");
-        sessionStorage.removeItem("authUser");
-    }
-
-    function getAuthState() {
-        return sessionStorage.getItem("authUser") ||
-            localStorage.getItem("authUser") ||
-            null;
-    }
-
-    /* === CẬP NHẬT applyAuthUI === */
-    function applyAuthUI() {
-        const authRaw = getAuthState();
-
-        if (authRaw) {
-            // ĐÃ ĐĂNG NHẬP
-            const auth = JSON.parse(authRaw);
-            $userGreetingName.text(auth.fullName); // Cập nhật tên
-            $profileContainer.show(); // Hiển thị khu vực profile
-            $loginBtn.hide(); // Ẩn nút "Đăng nhập"
-        } else {
-            // CHƯA ĐĂNG NHẬP
-            $profileContainer.hide(); // Ẩn khu vực profile
-            $loginBtn.show(); // Hiển thị nút "Đăng nhập"
-        }
-    }
 
     // =========================================
     // 3. HÀM TRỢ GIÚP (Helpers)

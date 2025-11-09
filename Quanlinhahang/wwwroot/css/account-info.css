@@ -1,0 +1,70 @@
+﻿.register-container {
+    padding-top: 100px;
+    padding-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#infoForm {
+    width: 90%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+    #infoForm fieldset:not([disabled]) input[type="text"],
+    #infoForm fieldset:not([disabled]) input[type="email"],
+    #infoForm fieldset:not([disabled]) input[type="tel"] {
+        width: 100%;
+        padding: 15px 20px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(197, 157, 95, 0.2);
+        border-radius: 10px;
+        color: #e8e8e8;
+        font-size: 15px;
+        font-family: "Lato", sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    #infoForm input:focus {
+        outline: none;
+        border-color: #c59d5f;
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    #infoForm fieldset[disabled] input[type="text"],
+    #infoForm fieldset[disabled] input[type="email"],
+    #infoForm fieldset[disabled] input[type="tel"] {
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        color: #e8e8e8 !important;
+        padding-left: 0;
+        cursor: default;
+        opacity: 1 !important;
+        -webkit-text-fill-color: #e8e8e8 !important;
+        box-shadow: none !important;
+    }
+
+    #infoForm fieldset:not([disabled]) input:-webkit-autofill,
+    #infoForm fieldset:not([disabled]) input:-webkit-autofill:hover,
+    #infoForm fieldset:not([disabled]) input:-webkit-autofill:focus,
+    #infoForm fieldset:not([disabled]) input:-webkit-autofill:active {
+        -webkit-text-fill-color: #e8e8e8 !important;
+        -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+        border-color: rgba(197, 157, 95, 0.2) !important;
+    }
+
+    #infoForm fieldset[disabled] input:-webkit-autofill,
+    #infoForm fieldset[disabled] input:-webkit-autofill:hover,
+    #infoForm fieldset[disabled] input:-webkit-autofill:focus,
+    #infoForm fieldset[disabled] input:-webkit-autofill:active {
+        -webkit-text-fill-color: #e8e8e8 !important;
+        -webkit-box-shadow: 0 0 0px 1000px #121212 inset !important;
+        border: 1px solid #121212 ;
+    }
+
+fieldset[disabled] .toggle-password {
+    display: none;
+}
