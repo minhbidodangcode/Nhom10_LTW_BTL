@@ -12,7 +12,6 @@ function getCartArray() {
     if (!raw) return [];
     const parsed = safeParse(raw);
     if (!parsed) return [];
-    // parsed có thể là object map {id: item, ...} hoặc mảng
     if (Array.isArray(parsed)) return parsed;
     return Object.values(parsed);
 }
@@ -73,7 +72,6 @@ $(document).ready(function () {
     $("#bookingForm").off("submit").on("submit", function (e) {
         e.preventDefault();
 
-        // LẤY GIỎ: ưu tiên localStorage, nếu rỗng -> lấy từ server (session)
         let cart = getCartArray();
 
         function submitWithCart(cartToSend) {
@@ -82,7 +80,6 @@ $(document).ready(function () {
                 return;
             }
 
-            // VALIDATE INPUTS
             const name = $("#customerName").val().trim();
             const phone = $("#phone").val().trim();
             const email = $("#email").val().trim();
@@ -95,14 +92,12 @@ $(document).ready(function () {
                 return;
             }
 
-            // phone: bắt đầu 0 hoặc +84, 10-11 chữ số (VN)
             const phoneRegex = /^(0|\+84)(\d{9,10})$/;
             if (!phoneRegex.test(phone)) {
                 alert("Số điện thoại không hợp lệ. VD: 0912345678 hoặc +84912345678.");
                 return;
             }
 
-            // email nếu có phải đúng định dạng
             if (email && email.length > 0) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
@@ -111,13 +106,11 @@ $(document).ready(function () {
                 }
             }
 
-            // bookingDate kiểm tra có chọn không
             if (!bookingDate) {
                 alert("Vui lòng chọn ngày đặt bàn.");
                 return;
             }
 
-            // chuẩn bị payload
             const payload = {
                 customerName: name,
                 phone: phone,
@@ -135,47 +128,49 @@ $(document).ready(function () {
                 }))
             };
 
-            // gửi AJAX
+            const $submitBtn = $("#bookingForm .btn-submit");
+            $submitBtn.text("Đang xác nhận...");
+            $submitBtn.prop("disabled", true);
+
             $.ajax({
                 url: "/DatBan/Submit",
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify(payload),
                 success: function (res) {
-                    // server nên trả về { success: true } khi ok
                     if (res && res.success) {
-                        // xóa giỏ local
                         localStorage.removeItem(LS_CART_KEY);
-                        // show modal thành công
+                        renderSummary();
                         $("#bookingModal").fadeIn();
                     } else {
                         const msg = (res && res.message) ? res.message : "Đặt bàn thất bại. Vui lòng thử lại.";
-                        alert(msg);
+                        alert("Lỗi: " + msg);
                     }
                 },
                 error: function (xhr) {
-                    const txt = xhr && xhr.responseText ? xhr.responseText : "Lỗi kết nối";
-                    // nếu server trả về JSON message, hãy parse nếu muốn
-                    alert("Lỗi: " + txt);
+                    const errorJson = safeParse(xhr.responseText);
+                    const msg = errorJson ? errorJson.message : "Lỗi kết nối Server. Mã lỗi: " + xhr.status;
+                    alert("Đặt bàn thất bại: " + msg);
+                },
+                complete: function () {
+                    $submitBtn.text("Xác nhận đặt bàn");
+                    $submitBtn.prop("disabled", false);
                 }
             });
-        } // end submitWithCart
+        }
 
         if (!cart || cart.length === 0) {
-            // fallback: lấy giỏ từ server session (Cart/GetCart)
             $.ajax({
                 url: "/Cart/GetCart",
                 type: "GET",
                 success: function (serverCart) {
                     if (Array.isArray(serverCart) && serverCart.length > 0) {
-                        // chuẩn hoá object server -> định dạng client
                         const mapped = serverCart.map(i => ({
                             id: (i.MonAnId || i.id || i.Id || i.ID || i.monAnId),
                             name: (i.TenMon || i.name || i.tên || i.tenMon),
                             price: Number(i.Gia || i.price || 0),
                             qty: Number(i.SoLuong || i.qty || 1)
                         }));
-                        // optional: lưu vào localStorage để nhất quán
                         saveCartArray(mapped);
                         renderSummary();
                         submitWithCart(mapped);
@@ -188,12 +183,10 @@ $(document).ready(function () {
                 }
             });
         } else {
-            // đã có cart local -> submit luôn
             submitWithCart(cart);
         }
     });
 
-    // modal đóng -> về menu
     $("#closeModalBtn").on("click", function () {
         $("#bookingModal").fadeOut();
         window.location.href = "/Home/Menu";

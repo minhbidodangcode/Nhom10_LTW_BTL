@@ -23,7 +23,7 @@ public partial class HoaDon
 
     public string? HinhThucThanhToan { get; set; }
 
-    public string TrangThaiThanhToan { get; set; } = null!;
+    public string TrangThai { get; set; } = null!;
 
     public decimal? Vat { get; set; }
 

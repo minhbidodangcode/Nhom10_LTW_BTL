@@ -44,19 +44,20 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Header */
 .site-header {
+    position: fixed;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    padding: 22px 28px;
+    padding: 12px 28px;
     background: var(--panel);
     border-bottom: 1px solid rgba(125, 95, 60, 0.06);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 100;
+    margin-top: 80px;
 }
 
 .header-left h1 {

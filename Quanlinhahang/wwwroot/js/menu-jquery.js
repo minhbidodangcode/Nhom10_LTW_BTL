@@ -94,11 +94,6 @@ $(function () {
 
     $search.on('input', applyFiltersClient);
     $filter.on('change', function () {
-        // nếu filter là server-side (select gửi form), bạn có thể submit form here
-        // nếu muốn client-only, bỏ dòng dưới:
-        // $(this).closest('form').submit();
-
-        // hiện tại giữ client-side lọc:
         applyFiltersClient();
     });
 

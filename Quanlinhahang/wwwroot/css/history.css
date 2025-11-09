@@ -1,0 +1,101 @@
+﻿.history-title {
+    color: #e8e8e8;
+    font-family: "Playfair Display", serif;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.history-tabs {
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px solid rgba(197, 157, 95, 0.2);
+    margin-bottom: 30px;
+}
+
+.history-tab-item {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1rem;
+    font-weight: 500;
+    font-family: "Lato", sans-serif;
+    text-transform: uppercase;
+    padding: 15px 25px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+    .history-tab-item:hover {
+        color: #e8e8e8;
+    }
+
+    .history-tab-item.active {
+        color: #c59d5f;
+        border-bottom-color: #c59d5f;
+    }
+
+.history-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.history-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(197, 157, 95, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #e8e8e8;
+}
+
+.history-item-info h4 {
+    color: #c59d5f;
+    font-family: "Playfair Display", serif;
+    margin-bottom: 10px;
+}
+
+.history-item-info p {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin: 5px 0;
+}
+
+.history-item-status {
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.status-cho-xac-nhan {
+    background-color: #555;
+    color: #fff;
+}
+
+.status-da-xac-nhan {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.status-dang-phuc-vu {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-da-thanh-toan {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.loading-spinner, .no-results {
+    text-align: center;
+    color: #999;
+    padding: 50px;
+    font-size: 1.2rem;
+}

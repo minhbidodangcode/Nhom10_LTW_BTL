@@ -83,7 +83,6 @@ public class AccountController : Controller
         }
     }
 
-    // [POST] /Account/Login
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginViewModel model)
     {
@@ -119,13 +118,6 @@ public class AccountController : Controller
         return Json(new { success = true, user = userResponse });
     }
 
-    // ==========================================================
-    // === BẮT ĐẦU PHẦN SỬA LỖI CHO TRANG INFO.CSHTML ===
-    // ==========================================================
-
-    // (Trong file Controllers/AccountController.cs)
-
-    // [GET] /Account/GetUserInfo (ĐÃ SỬA LỖI)
     [HttpGet("GetUserInfo")]
     public async Task<IActionResult> GetUserInfo([FromQuery] string username)
     {
@@ -134,15 +126,14 @@ public class AccountController : Controller
             return BadRequest(new { success = false, message = "Không tìm thấy người dùng." });
         }
 
-        // SỬA LỖI: Thêm .Include(k => k.TaiKhoan)
         var khachHang = await _context.KhachHangs
-                                    .Include(k => k.TaiKhoan) // <-- SỬA Ở ĐÂY
+                                    .Include(k => k.TaiKhoan) 
                                     .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == username);
 
         if (khachHang == null)
         {
             var nhanVien = await _context.NhanViens
-                                    .Include(n => n.TaiKhoan) // <-- SỬA Ở ĐÂY
+                                    .Include(n => n.TaiKhoan) 
                                     .FirstOrDefaultAsync(n => n.TaiKhoan != null && n.TaiKhoan.TenDangNhap == username);
 
             if (nhanVien != null)
@@ -175,9 +166,8 @@ public class AccountController : Controller
             return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
 
-        // SỬA LỖI: Thêm .Include(k => k.TaiKhoan)
         var khachHang = await _context.KhachHangs
-                                .Include(k => k.TaiKhoan) // <-- SỬA Ở ĐÂY
+                                .Include(k => k.TaiKhoan) 
                                 .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == model.Username);
 
         if (khachHang == null)
@@ -208,7 +198,75 @@ public class AccountController : Controller
         }
     }
 
-    // Hàm Hash Mật khẩu
+    [HttpGet("History")]
+    public IActionResult History()
+    {
+        return View();
+    }
+
+    [HttpGet("GetHistoryData")]
+    public async Task<IActionResult> GetHistoryData([FromQuery] string username, [FromQuery] string status)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            return BadRequest(new { success = false, message = "Không tìm thấy người dùng." });
+        }
+
+        // 1. Lấy Khách hàng ID
+        var khachHang = await _context.KhachHangs
+                                    .Include(k => k.TaiKhoan)
+                                    .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == username);
+
+        if (khachHang == null)
+        {
+            return NotFound(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
+        }
+
+        // 2. Truy vấn cơ sở (Query)
+        // Tải cả DatBan và HoaDon liên quan
+        var query = _context.DatBans
+                            .Include(d => d.BanPhong)
+                            .Include(d => d.HoaDons)
+                            .Where(d => d.KhachHangId == khachHang.KhachHangId);
+
+        // 3. Lọc theo trạng thái (status)
+        switch (status.ToLower())
+        {
+            case "chưa xác nhận":
+                // TrangThai trong DatBan: "Chờ xác nhận"
+                query = query.Where(d => d.TrangThai == "Chờ xác nhận");
+                break;
+            case "đã xác nhận":
+                query = query.Where(d => d.TrangThai == "Đã xác nhận");
+                break;
+            case "đang phục vụ":
+                query = query.Where(d => d.TrangThai == "Đang phục vụ");
+                break;
+            case "đã thanh toán":
+                // Lọc DatBan có ít nhất một HoaDon có TrangThai = "Đã thanh toán"
+                query = query.Where(d => d.HoaDons.Any(h => h.TrangThai == "Đã thanh toán"));
+                break;
+            case "tất cả":
+            default:
+                // Không lọc gì thêm
+                break;
+        }
+
+        // 4. Chọn dữ liệu trả về cho JavaScript
+        var historyData = await query
+            .OrderByDescending(d => d.NgayDen)
+            .Select(d => new
+            {
+                ngayDen = d.NgayDen.ToString("dd/MM/yyyy"),
+                tenBanPhong = d.BanPhong != null ? d.BanPhong.TenBanPhong : "N/A",
+                soNguoi = d.SoNguoi,
+                trangThaiDatBan = d.TrangThai,
+                trangThaiThanhToan = d.HoaDons.OrderByDescending(h => h.NgayLap).Select(h => h.TrangThai).FirstOrDefault()
+            })
+            .ToListAsync();
+
+        return Json(historyData);
+    }
     private string HashPassword(string password)
     {
         using (var sha256 = SHA256.Create())
