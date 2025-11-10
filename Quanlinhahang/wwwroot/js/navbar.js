@@ -91,9 +91,8 @@ $(document).ready(function () {
     function handleLogout() {
         if (confirm("Bạn có chắc muốn đăng xuất?")) {
             clearAuthState();
-            applyAuthUI(); // Cập nhật lại UI
-            // (Tùy chọn: Chuyển hướng về trang chủ)
-            // window.location.href = "/"; 
+            applyAuthUI(); 
+            window.location.href = "/Home/GioiThieu";
         }
     }
 

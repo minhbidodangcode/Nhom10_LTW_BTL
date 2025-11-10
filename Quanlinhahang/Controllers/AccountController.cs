@@ -267,6 +267,92 @@ public class AccountController : Controller
 
         return Json(historyData);
     }
+
+    [HttpGet("Vouchers")]
+    public IActionResult Vouchers()
+    {
+        // Trả về View Views/Account/Vouchers.cshtml
+        return View();
+    }
+
+    // 2. Action (API) [GET] để LẤY danh sách Voucher của khách hàng
+    [HttpGet("GetUserVouchers")]
+    public async Task<IActionResult> GetUserVouchers([FromQuery] string username)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            return BadRequest(new { success = false, message = "Không tìm thấy người dùng." });
+        }
+
+        // Lấy ID và Điểm tích lũy của khách hàng
+        var khachHang = await _context.KhachHangs
+                                    .Include(k => k.TaiKhoan)
+                                    .Include(k => k.HangThanhVien) // Tải hạng thành viên để hiển thị
+                                    .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == username);
+
+        if (khachHang == null)
+        {
+            return NotFound(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
+        }
+
+        // ===============================================
+        // GIẢ LẬP LOGIC LẤY VOUCHER (vì bạn chưa có bảng Voucher)
+        // ===============================================
+
+        // Giả định 1: Voucher dựa trên Hạng thành viên
+        string hangThanhVien = khachHang.HangThanhVien?.TenHang ?? "Thường";
+        int diem = khachHang.DiemTichLuy;
+
+        var vouchers = new List<object>();
+
+        // Voucher cố định cho mọi Khách hàng đã đăng nhập
+        vouchers.Add(new
+        {
+            code = "WELCOME10",
+            value = 10,
+            type = "Phần trăm",
+            minOrder = 200000,
+            expiry = DateTime.Today.AddDays(30).ToString("dd/MM/yyyy"),
+            description = "Giảm 10% cho đơn hàng đầu tiên."
+        });
+
+        // Voucher thưởng theo Điểm (Ví dụ)
+        if (diem >= 1000)
+        {
+            vouchers.Add(new
+            {
+                code = "FREE_DRINK",
+                value = 1,
+                type = "Món ăn",
+                minOrder = 0,
+                expiry = DateTime.Today.AddMonths(3).ToString("dd/MM/yyyy"),
+                description = $"Tặng 1 đồ uống miễn phí (Hạng {hangThanhVien})."
+            });
+        }
+
+        // Voucher đặc biệt cho hạng Kim cương
+        if (hangThanhVien == "Kim cương")
+        {
+            vouchers.Add(new
+            {
+                code = "KIMCUONG20",
+                value = 20,
+                type = "Phần trăm",
+                minOrder = 500000,
+                expiry = DateTime.Today.AddYears(1).ToString("dd/MM/yyyy"),
+                description = "Giảm 20% đặc biệt cho khách hạng Kim cương."
+            });
+        }
+
+        return Json(new
+        {
+            success = true,
+            diemTichLuy = diem,
+            hangThanhVien = hangThanhVien,
+            list = vouchers
+        });
+    }
+
     private string HashPassword(string password)
     {
         using (var sha256 = SHA256.Create())
