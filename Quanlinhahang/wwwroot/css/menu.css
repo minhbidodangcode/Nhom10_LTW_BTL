@@ -1,5 +1,4 @@
-﻿/* Thêm ở đầu file style.css */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Open+Sans:wght@400;600&display=swap");
+﻿@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Open+Sans:wght@400;600&display=swap");
 
 body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -73,7 +72,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Search & filter */
 .header-center {
     display: flex;
     gap: 12px;
@@ -98,7 +96,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Cart button */
 .header-right {
     display: flex;
     align-items: center;
@@ -124,14 +121,12 @@ body {
     font-size: 0.9rem;
 }
 
-/* Container */
-.container {
+.container-menu {
     max-width: var(--max-width);
-    margin: 28px auto;
+    margin: 190px auto;
     padding: 0 20px 80px;
 }
 
-/* Sections */
 .menu-section {
     margin-bottom: 34px;
 }
@@ -150,12 +145,11 @@ body {
     margin: 16px 0 8px;
 }
 
-/* Grid & cards */
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--gap);
-    justify-content: center; /* cho các cột nằm giữa hàng */
+    justify-content: center;
 }
 
 .menu-card {
@@ -177,7 +171,6 @@ body {
         box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
     }
 
-/* === IMAGE ANIMATION - COMBO vs A LA CARTE === */
 .card-media {
     position: relative;
     width: 100%;
@@ -196,7 +189,6 @@ body {
         transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-/* ===== ANIMATION CHO COMBO (SLIDESHOW) ===== */
 #combo-section .card-media img {
     position: absolute;
     top: 0;
@@ -211,7 +203,6 @@ body {
         transform: scale(1);
     }
 
-/* Slideshow animation khi hover - chỉ cho Combo */
 #combo-section .menu-card:hover .card-media img:nth-child(1) {
     animation: kenBurnsSmooth 8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
@@ -255,7 +246,6 @@ body {
     }
 }
 
-/* ===== ANIMATION CHO MÓN ĐƠN (ZOOM + ROTATE) ===== */
 #alacarte-section .card-media {
     position: relative;
 }
@@ -282,7 +272,6 @@ body {
     transform: scale(1.15) rotate(2deg);
 }
 
-/* Thêm hiệu ứng shimmer cho món đơn */
 #alacarte-section .card-media::after {
     content: "";
     position: absolute;
@@ -310,7 +299,6 @@ body {
     }
 }
 
-/* === END IMAGE ANIMATION === */
 .card-body {
     padding: 16px 16px 20px;
     text-align: left;
@@ -333,7 +321,6 @@ body {
     min-height: 40px;
 }
 
-/* Price row */
 .price-row {
     display: flex;
     align-items: center;
@@ -353,7 +340,6 @@ body {
     font-size: 1.05rem;
 }
 
-/* Order button */
 .order-btn {
     margin-top: 12px;
     padding: 10px 14px;
@@ -376,9 +362,6 @@ body {
         transform: translateY(0);
     }
 
-/* Cart drawer */
-/* ==== GIỎ HÀNG (DROPDOWN / DRAWER) ==== */
-/* ==== GIỎ HÀNG (DROPDOWN / DRAWER) ==== */
 #cartDrawer {
     display: none;
     position: fixed;
@@ -412,7 +395,6 @@ body {
     }
 }
 
-/* ===== ITEM ===== */
 .cart-item {
     background: #fafafa;
     border: 1px solid #eee;
@@ -424,7 +406,6 @@ body {
     gap: 6px;
 }
 
-/* Tên + giá */
 .cart-info {
     display: flex;
     justify-content: space-between;
@@ -442,7 +423,6 @@ body {
     color: #555;
 }
 
-/* ====== Nút điều khiển ====== */
 .cart-controls {
     display: flex;
     justify-content: space-between;
@@ -481,7 +461,6 @@ body {
     color: #333;
 }
 
-/* Nút xóa món */
 .remove-btn {
     background: transparent;
     border: none;
@@ -496,7 +475,6 @@ body {
         color: #a60000;
     }
 
-/* ====== FOOTER ====== */
 .cart-footer {
     border-top: 1px solid #ddd;
     padding-top: 10px;
@@ -512,7 +490,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* ====== Nút hành động ====== */
 .cart-actions {
     display: flex;
     justify-content: space-between;
@@ -547,7 +524,6 @@ body {
         background: #e67800;
     }
 
-/* ====== Nút đóng cart (nếu có) ====== */
 #close-cart {
     background: transparent;
     border: none;
@@ -563,9 +539,6 @@ body {
         color: #000;
     }
 
-
-
-/* Toast */
 .toast {
     position: fixed;
     left: 50%;
@@ -603,7 +576,6 @@ body {
         font-size: 16px;
     }
 
-/* Mobile */
 @media (max-width: 900px) {
     .menu-card {
         max-width: 100%;
@@ -621,7 +593,6 @@ body {
             height: 140px;
         }
 
-    /* Animation nhẹ hơn cho mobile */
     @keyframes kenBurnsSmooth {
         0% {
             opacity: 0;
@@ -670,7 +641,6 @@ body {
     }
 }
 
-/* Scroll Reveal Animation */
 .menu-card {
     opacity: 0;
     transform: translateY(30px);
@@ -682,7 +652,6 @@ body {
         transform: translateY(0);
     }
 
-/* Cart Badge Animation */
 #cart-count {
     transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
