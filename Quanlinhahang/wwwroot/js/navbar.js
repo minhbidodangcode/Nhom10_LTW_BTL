@@ -1,6 +1,8 @@
 /* ================================
-   NAVBAR.JS - PHIÊN BẢN CẬP NHẬT (Dropdown)
+   NAVBAR.JS - PHIÊN BẢN CUỐI CÙNG
    ================================ */
+
+// === CÁC HÀM AUTH STATE (GLOBAL SCOPE) ===
 function getAuthState() {
     return sessionStorage.getItem("authUser") ||
         localStorage.getItem("authUser") ||
@@ -50,8 +52,6 @@ $(document).ready(function () {
     // 1. KHAI BÁO BIẾN
     // =========================================
     const $loginBtn = $("#loginBtn");
-
-    // Biến cho Modal Đăng nhập
     const $loginModal = $("#loginModal");
     const $loginForm = $("#loginForm");
     const $usernameInput = $("#username");
@@ -59,24 +59,32 @@ $(document).ready(function () {
     const $rememberMe = $("#rememberMe");
     const $errorMessage = $("#loginError");
     const $loginSuccess = $("#loginSuccess");
-
-    // Biến cho Modal Đăng ký
     const $registerModal = $("#registerModal");
-
-    // Biến cho Profile Dropdown (MỚI)
     const $profileContainer = $("#profileDropdownContainer");
     const $profileToggleBtn = $("#profileToggleBtn");
     const $profileDropdownMenu = $("#profileDropdownMenu");
     const $userGreetingName = $("#userGreetingName");
-
-    // Biến chung
     const $navbar = $(".navbar");
 
+    // === BIẾN CHO RESET PASSWORD (MỚI) ===
+    const $forgotPasswordLink = $("#forgotPasswordLink");
+    const $resetPasswordModal = $("#resetPasswordModal");
+    const $closeResetModal = $("#closeResetModal");
+    const $resetStep1Form = $("#resetStep1Form");
+    const $resetStep2Form = $("#resetStep2Form");
+    const $resetUsernameInput = $("#resetUsername");
+    const $resetError = $("#resetError");
+    const $resetSuccess = $("#resetSuccess");
+    const $backToLoginFromReset = $("#backToLoginFromReset");
+    const $toggleNewPassword = $("#toggleNewPassword");
+
+    let currentResetUsername = ''; // Biến lưu Username tạm thời
+
+
     // =========================================
-    // 3. HÀM TRỢ GIÚP (Helpers)
+    // 2. HÀM TRỢ GIÚP (Helpers)
     // =========================================
 
-    /* Hàm cho Login Modal */
     function showError(msg) {
         $errorMessage.text(msg).slideDown();
         $loginSuccess.slideUp();
@@ -87,17 +95,26 @@ $(document).ready(function () {
         $errorMessage.slideUp();
     }
 
-    /* Hàm Đăng xuất */
+    function showResetError(msg) {
+        $resetError.text(msg).slideDown();
+        $resetSuccess.slideUp();
+    }
+    function showResetSuccess(msg) {
+        $resetSuccess.text(msg).slideDown();
+        $resetError.slideUp();
+    }
+
+
     function handleLogout() {
         if (confirm("Bạn có chắc muốn đăng xuất?")) {
             clearAuthState();
-            applyAuthUI(); 
+            applyAuthUI();
             window.location.href = "/Home/GioiThieu";
         }
     }
 
-    /* Hàm Mobile Nav */
     function setupMobileNav() {
+        // ... (Giữ nguyên code setupMobileNav) ...
         const $navMenu = $(".nav-menu");
         const $navToggle = $("#navToggle");
         if (!$navMenu.length || !$navToggle.length) return;
@@ -131,10 +148,9 @@ $(document).ready(function () {
     }
 
     // =========================================
-    // 4. KHỞI CHẠY (Initialization)
+    // 3. KHỞI CHẠY (Initialization)
     // =========================================
 
-    // Load tên đăng nhập đã ghi nhớ
     const savedUsername = localStorage.getItem("rememberedUsername");
     if (savedUsername) {
         $usernameInput.val(savedUsername);
@@ -142,10 +158,10 @@ $(document).ready(function () {
     }
 
     setupMobileNav();
-    applyAuthUI(); // Chạy ngay khi tải trang
+    applyAuthUI();
 
     // =========================================
-    // 5. GẮN SỰ KIỆN (Event Handlers)
+    // 4. GẮN SỰ KIỆN (Event Handlers)
     // =========================================
 
     /* Mở Modal Đăng nhập */
@@ -155,7 +171,7 @@ $(document).ready(function () {
         $loginSuccess.hide().empty();
     });
 
-    /* Đóng Modal Đăng nhập */
+    /* Đóng Modal Đăng nhập (nút X và backdrop) */
     $("#closeModal, #loginModal").on("click", function (e) {
         if ($(e.target).is("#closeModal") || $(e.target).is("#loginModal")) {
             $loginModal.removeClass("active");
@@ -206,7 +222,7 @@ $(document).ready(function () {
                     }
                     saveAuthState(response.user, formData.RememberMe);
                     setTimeout(() => {
-                        applyAuthUI(); // Cập nhật Navbar
+                        applyAuthUI();
                         $loginModal.removeClass("active");
                         $loginForm.trigger("reset");
                         $loginSuccess.hide();
@@ -227,22 +243,151 @@ $(document).ready(function () {
         });
     });
 
-    /* === CẬP NHẬT: Xử lý Đăng xuất === */
-    // Sự kiện click Đăng xuất giờ sẽ gắn vào #logoutLink (thay vì #logoutBtn)
+    /* === SỰ KIỆN KHÔI PHỤC MẬT KHẨU (MỚI) === */
+
+    /* Mở Modal Reset Password */
+    $forgotPasswordLink.on("click", function (e) {
+        e.preventDefault();
+        $loginModal.removeClass("active");
+        $resetPasswordModal.addClass("active");
+
+        $resetStep1Form.show();
+        $resetStep2Form.hide();
+        $("#resetHeader").text("Khôi phục mật khẩu");
+        $("#resetSubheader").text("Bước 1: Nhập Tên đăng nhập của bạn");
+        $resetError.empty().hide();
+        $resetSuccess.empty().hide();
+    });
+
+    /* Quay lại Đăng nhập */
+    $backToLoginFromReset.on("click", function (e) {
+        e.preventDefault();
+        $resetPasswordModal.removeClass("active");
+        $loginModal.addClass("active");
+    });
+
+    /* Đóng Modal Khôi phục */
+    $("#closeResetModal").on("click", function () {
+        $resetPasswordModal.removeClass("active");
+    });
+    $resetPasswordModal.on("click", function (e) {
+        if ($(e.target).is($resetPasswordModal)) {
+            $resetPasswordModal.removeClass("active");
+        }
+    });
+
+    /* Toggle Mật khẩu Mới */
+    $toggleNewPassword.on("click", function () {
+        const $input = $("#newPassword");
+        if ($input.attr("type") === "password") {
+            $input.attr("type", "text");
+            $(this).text("🙈");
+        } else {
+            $input.attr("type", "password");
+            $(this).text("👁");
+        }
+    });
+
+
+    /* Xử lý Bước 1 (Check Username) */
+    $resetStep1Form.on("submit", function (e) {
+        e.preventDefault();
+        currentResetUsername = $resetUsernameInput.val().trim();
+
+        if (currentResetUsername.length < 4) {
+            return showResetError("Tên đăng nhập không hợp lệ.");
+        }
+
+        $.ajax({
+            url: "/Account/CheckUsername",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ Username: currentResetUsername }),
+            beforeSend: function () {
+                $("#continueBtn").prop("disabled", true).text("Đang kiểm tra...");
+            },
+            success: function (res) {
+                if (res.success) {
+                    // Thành công -> Chuyển sang Bước 2
+                    $resetStep1Form.slideUp(200, function () {
+                        $("#resetHeader").text("Đặt lại mật khẩu");
+                        $("#resetSubheader").text(`Bước 2: Nhập mật khẩu mới cho ${currentResetUsername}`);
+                        $resetStep2Form.slideDown(200);
+                        $resetSuccess.empty().hide();
+                        $resetError.empty().hide();
+                    });
+                } else {
+                    showResetError(res.message || "Tên đăng nhập không tồn tại.");
+                }
+            },
+            error: function (xhr) {
+                showResetError(xhr.responseJSON?.message || "Lỗi kết nối server.");
+            },
+            complete: function () {
+                $("#continueBtn").prop("disabled", false).text("Tiếp tục");
+            }
+        });
+    });
+
+
+    /* Xử lý Bước 2 (Đổi Mật khẩu) */
+    $resetStep2Form.on("submit", function (e) {
+        e.preventDefault();
+        const newPassword = $("#newPassword").val();
+        const confirmPassword = $("#confirmNewPassword").val();
+
+        if (newPassword.length < 6) return showResetError("Mật khẩu phải có ít nhất 6 ký tự.");
+        if (newPassword !== confirmPassword) return showResetError("Mật khẩu xác nhận không khớp.");
+
+        $.ajax({
+            url: "/Account/ResetPassword",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                Username: currentResetUsername,
+                NewPassword: newPassword
+            }),
+            beforeSend: function () {
+                $resetStep2Form.find("button[type='submit']").prop("disabled", true).text("Đang đổi...");
+            },
+            success: function (res) {
+                if (res.success) {
+                    showResetSuccess(res.message || "Mật khẩu đã được thay đổi thành công!");
+                    setTimeout(() => {
+                        $resetPasswordModal.removeClass("active");
+                        $loginModal.addClass("active");
+                        $("#username").val(currentResetUsername);
+                        $resetStep2Form.trigger("reset");
+                    }, 2000);
+                } else {
+                    showResetError(res.message || "Lỗi khi đổi mật khẩu.");
+                }
+            },
+            error: function (xhr) {
+                showResetError(xhr.responseJSON?.message || "Lỗi kết nối server.");
+            },
+            complete: function () {
+                $resetStep2Form.find("button[type='submit']").prop("disabled", false).text("Đổi mật khẩu");
+            }
+        });
+    });
+
+    /* === CÁC SỰ KIỆN KHÁC (Giữ nguyên) === */
+
+    /* Xử lý Đăng xuất */
     $(document).on("click", "#logoutLink", function (e) {
-        e.preventDefault(); // Ngăn link tự nhảy trang
-        $profileDropdownMenu.slideUp(200); // Đóng menu trước
+        e.preventDefault();
+        $profileDropdownMenu.slideUp(200);
         handleLogout();
     });
 
-    /* === MỚI: Xử lý trượt menu profile === */
+    /* Xử lý trượt menu profile */
     $profileToggleBtn.on("click", function () {
-        $profileDropdownMenu.slideToggle(200); // 200ms
+        $profileDropdownMenu.slideToggle(200);
     });
 
-    // (Tùy chọn) Đóng menu khi click ra bên ngoài
+    /* Đóng menu profile khi click ra ngoài */
     $(document).on("click", function (event) {
-        // Kiểm tra xem click có nằm ngoài .profile-dropdown không
         if (!$profileDropdownMenu.is(":hidden") && !$(event.target).closest('#profileDropdownContainer').length) {
             $profileDropdownMenu.slideUp(200);
         }

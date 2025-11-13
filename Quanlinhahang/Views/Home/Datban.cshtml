@@ -7,7 +7,6 @@
     <div class="container">
         <h1 class="page-title">Đặt bàn & Xác nhận đơn hàng</h1>
 
-        <!-- ========== TÓM TẮT ĐƠN HÀNG (LẤY TỪ TRANG MENU) ========== -->
         <section class="order-summary">
             <div class="summary-header">
                 <div>#</div>
@@ -29,27 +28,14 @@
             </div>
         </section>
 
-        <!-- ========== FORM ĐẶT BÀN ========== -->
         <section class="booking-form">
+
+            <div class="user-greeting-box" id="userGreetingBox">
+                <p>Xin chào, <strong id="loggedInName">Quý Khách</strong>. Thông tin liên hệ sẽ được lấy từ tài khoản của bạn.</p>
+            </div>
+
             <form id="bookingForm">
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="customerName">Họ và tên</label>
-                        <input type="text" id="customerName" name="customerName"
-                               class="form-control" placeholder="Nhập họ và tên" required />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Số điện thoại</label>
-                        <input type="tel" id="phone" name="phone"
-                               class="form-control" placeholder="Nhập số điện thoại" required />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email (không bắt buộc)</label>
-                        <input type="email" id="email" name="email"
-                               class="form-control" placeholder="Nhập email nếu có" />
-                    </div>
 
                     <div class="form-group">
                         <label for="bookingDate">Ngày đặt</label>
@@ -98,7 +84,6 @@
     </div>
 </div>
 
-<!-- ========== MODAL THÔNG BÁO ĐẶT BÀN THÀNH CÔNG ========== -->
 <div class="modal" id="bookingModal">
     <div class="modal-content">
         <div class="modal-icon">

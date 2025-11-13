@@ -41,7 +41,6 @@
     </div>
 </nav>
 
-<!-- Modal đăng nhập -->
 <div class="modal" id="loginModal">
     <div class="modal-content">
         <button class="close-btn" id="closeModal">&times;</button>
@@ -75,7 +74,7 @@
                     <input type="checkbox" id="rememberMe" />
                     <span>Ghi nhớ đăng nhập</span>
                 </label>
-                <a class="forgot-password">Quên mật khẩu?</a>
+                <a class="forgot-password" id="forgotPasswordLink">Quên mật khẩu?</a>
             </div>
 
             <button type="submit" class="submit-btn">Đăng nhập</button>
@@ -85,5 +84,49 @@
                 <a asp-controller="Account" asp-action="Dangki" class="btn-link">Đăng ký ngay</a>
             </div>
         </form>
+    </div>
+</div>
+<div class="modal" id="resetPasswordModal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeResetModal">&times;</button>
+
+        <div class="modal-header">
+            <h2 id="resetHeader">Khôi phục mật khẩu</h2>
+            <p id="resetSubheader">Bước 1: Nhập Tên đăng nhập của bạn</p>
+        </div>
+
+        <div id="resetError" class="error-message"></div>
+        <div id="resetSuccess" class="success-message"></div>
+
+        <form id="resetStep1Form">
+            <div class="form-group">
+                <label for="resetUsername">Tên đăng nhập</label>
+                <div class="input-wrapper">
+                    <input type="text" id="resetUsername" name="username" placeholder="Nhập tên đăng nhập" required />
+                </div>
+            </div>
+            <button type="submit" class="submit-btn" id="continueBtn">Tiếp tục</button>
+            <div class="register-link">
+                <a id="backToLoginFromReset">← Quay lại Đăng nhập</a>
+            </div>
+        </form>
+
+        <form id="resetStep2Form" style="display:none;">
+            <div class="form-group">
+                <label for="newPassword">Mật khẩu mới</label>
+                <div class="input-wrapper">
+                    <input type="password" id="newPassword" name="newPassword" placeholder="Nhập mật khẩu mới" required />
+                    <span class="toggle-password" id="toggleNewPassword">👁</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmNewPassword">Xác nhận mật khẩu mới</label>
+                <div class="input-wrapper">
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Nhập lại mật khẩu mới" required />
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Đổi mật khẩu</button>
+        </form>
+
     </div>
 </div>

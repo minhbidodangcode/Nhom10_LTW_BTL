@@ -352,6 +352,64 @@ public class AccountController : Controller
             list = vouchers
         });
     }
+    [HttpPost("CheckUsername")]
+    public async Task<IActionResult> CheckUsername([FromBody] CheckUsernameViewModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.Username))
+        {
+            return BadRequest(new { success = false, message = "Vui lòng nhập tên đăng nhập." });
+        }
+
+        var taiKhoan = await _context.TaiKhoans
+            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+
+        if (taiKhoan == null)
+        {
+            return Json(new { success = false, message = "Tên đăng nhập không tồn tại." });
+        }
+
+        // Nếu tài khoản tồn tại, trả về thành công để chuyển sang bước 2
+        return Json(new { success = true });
+    }
+
+
+    // [POST] /Account/ResetPassword (Bước 2: Đặt lại mật khẩu)
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { success = false, message = "Mật khẩu mới không hợp lệ." });
+        }
+
+        // 1. Tìm tài khoản
+        var taiKhoan = await _context.TaiKhoans
+            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+
+        if (taiKhoan == null)
+        {
+            // Điều này không nên xảy ra nếu Bước 1 đã thành công
+            return NotFound(new { success = false, message = "Không tìm thấy tài khoản để khôi phục." });
+        }
+
+        // 2. Hash mật khẩu mới
+        var newHashedPassword = HashPassword(model.NewPassword);
+
+        // 3. Cập nhật mật khẩu trong CSDL
+        taiKhoan.MatKhauHash = newHashedPassword;
+
+        try
+        {
+            _context.TaiKhoans.Update(taiKhoan);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Khôi phục thành công! Vui lòng đăng nhập bằng mật khẩu mới." });
+        }
+        catch (Exception ex)
+        {
+            // Ghi log ex (ex.Message)
+            return StatusCode(500, new { success = false, message = "Lỗi server khi cập nhật mật khẩu." });
+        }
+    }
 
     private string HashPassword(string password)
     {

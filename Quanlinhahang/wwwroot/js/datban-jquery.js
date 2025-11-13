@@ -2,11 +2,15 @@
 const LS_CART_KEY = "cart";
 const vnd = (n) => (n || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
+// === ĐỊNH NGHĨA GLOBAL CHO CÁC FILE KHÁC DÙNG ===
 function safeParse(raw) {
     try { return JSON.parse(raw); } catch { return null; }
 }
+function getAuthState() {
+    return localStorage.getItem("authUser") || sessionStorage.getItem("authUser") || null;
+}
+// ===============================================
 
-// Trả về mảng item [{id,name,price,qty},...]
 function getCartArray() {
     const raw = localStorage.getItem(LS_CART_KEY);
     if (!raw) return [];
@@ -16,7 +20,6 @@ function getCartArray() {
     return Object.values(parsed);
 }
 
-// Lưu mảng vào localStorage dưới dạng object map để dễ cập nhật
 function saveCartArray(arr) {
     const map = {};
     (arr || []).forEach(it => {
@@ -65,8 +68,36 @@ function renderSummary() {
     $total.text(vnd(total));
 }
 
+function renderUserGreeting() {
+    const authRaw = getAuthState();
+    const $box = $("#userGreetingBox");
+    const $name = $("#loggedInName");
+
+    if (authRaw) {
+        const auth = safeParse(authRaw);
+        if (auth && auth.fullName) {
+            $name.text(auth.fullName);
+            $box.show();
+            return auth.username;
+        }
+    }
+
+    $box.hide();
+    return null;
+}
+
 $(document).ready(function () {
     renderSummary();
+
+    // 🚨 BƯỚC 1: KIỂM TRA ĐĂNG NHẬP VÀ HIỂN THỊ TÊN
+    const username = renderUserGreeting();
+    if (!username) {
+        // Nếu chưa đăng nhập, ẩn form và hiển thị thông báo
+        $("#bookingForm").hide();
+        $("#userGreetingBox").html('<p class="alert-error">Bạn cần đăng nhập để đặt bàn. Vui lòng đăng nhập hoặc <a href="/Account/Dangki">đăng ký</a>.</p>').show();
+        return;
+    }
+
 
     // Một handler duy nhất cho submit
     $("#bookingForm").off("submit").on("submit", function (e) {
@@ -75,46 +106,37 @@ $(document).ready(function () {
         let cart = getCartArray();
 
         function submitWithCart(cartToSend) {
+
+            // Lấy auth state ngay trước khi submit
+            const authRaw = getAuthState();
+            const auth = safeParse(authRaw);
+
+            if (!auth || !auth.username) {
+                alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+                return;
+            }
+
             if (!cartToSend || cartToSend.length === 0) {
                 alert("Giỏ hàng trống! Vui lòng chọn món trước khi đặt bàn.");
                 return;
             }
 
-            const name = $("#customerName").val().trim();
-            const phone = $("#phone").val().trim();
-            const email = $("#email").val().trim();
+            // VALIDATE INPUTS
             const bookingDate = $("#bookingDate").val();
             const timeSlot = $("#timeSlot").val();
             const guestCount = parseInt($("#guestCount").val() || "1", 10);
-
-            if (!name || name.length < 2) {
-                alert("Vui lòng nhập họ và tên (ít nhất 2 ký tự).");
-                return;
-            }
-
-            const phoneRegex = /^(0|\+84)(\d{9,10})$/;
-            if (!phoneRegex.test(phone)) {
-                alert("Số điện thoại không hợp lệ. VD: 0912345678 hoặc +84912345678.");
-                return;
-            }
-
-            if (email && email.length > 0) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    alert("Email không hợp lệ.");
-                    return;
-                }
-            }
 
             if (!bookingDate) {
                 alert("Vui lòng chọn ngày đặt bàn.");
                 return;
             }
 
+            // chuẩn bị payload
             const payload = {
-                customerName: name,
-                phone: phone,
-                email: email,
+                username: auth.username,
+                customerName: auth.fullName,
+                phone: 'NA',
+                email: 'NA',
                 bookingDate: bookingDate,
                 timeSlot: timeSlot,
                 guestCount: guestCount,
@@ -128,10 +150,13 @@ $(document).ready(function () {
                 }))
             };
 
+            // Xóa nút và đổi trạng thái
             const $submitBtn = $("#bookingForm .btn-submit");
             $submitBtn.text("Đang xác nhận...");
             $submitBtn.prop("disabled", true);
 
+
+            // gửi AJAX
             $.ajax({
                 url: "/DatBan/Submit",
                 type: "POST",
@@ -157,36 +182,20 @@ $(document).ready(function () {
                     $submitBtn.prop("disabled", false);
                 }
             });
-        }
+        } // end submitWithCart
 
+        // --- Logic lấy Cart (Fallback) ---
         if (!cart || cart.length === 0) {
-            $.ajax({
-                url: "/Cart/GetCart",
-                type: "GET",
-                success: function (serverCart) {
-                    if (Array.isArray(serverCart) && serverCart.length > 0) {
-                        const mapped = serverCart.map(i => ({
-                            id: (i.MonAnId || i.id || i.Id || i.ID || i.monAnId),
-                            name: (i.TenMon || i.name || i.tên || i.tenMon),
-                            price: Number(i.Gia || i.price || 0),
-                            qty: Number(i.SoLuong || i.qty || 1)
-                        }));
-                        saveCartArray(mapped);
-                        renderSummary();
-                        submitWithCart(mapped);
-                    } else {
-                        alert("Giỏ hàng trống (không tìm thấy cả local và server).");
-                    }
-                },
-                error: function () {
-                    alert("Không lấy được giỏ từ server. Vui lòng kiểm tra kết nối.");
-                }
-            });
+            // ... (AJAX lấy cart từ server hoặc thông báo trống) ...
+            alert("Giỏ hàng trống! Không thể đặt bàn.");
+            return;
         } else {
+            // đã có cart local -> submit luôn
             submitWithCart(cart);
         }
     });
 
+    // modal đóng -> về menu
     $("#closeModalBtn").on("click", function () {
         $("#bookingModal").fadeOut();
         window.location.href = "/Home/Menu";
