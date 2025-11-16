@@ -23,7 +23,7 @@ public partial class HoaDon
 
     public string? HinhThucThanhToan { get; set; }
 
-    public string TrangThai { get; set; } = null!;
+    public int TrangThaiId { get; set; }
 
     public decimal? Vat { get; set; }
 
@@ -34,4 +34,6 @@ public partial class HoaDon
     public virtual DatBan DatBan { get; set; } = null!;
 
     public virtual TaiKhoan? TaiKhoan { get; set; }
+
+    public virtual TrangThaiHoaDon TrangThai { get; set; } = null!;
 }

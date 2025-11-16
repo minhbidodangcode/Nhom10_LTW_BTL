@@ -8,7 +8,7 @@ namespace Quanlinhahang.Models
         public string Username { get; set; } = string.Empty;
 
         [Required]
-        public string FullName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty; 
 
         [Required]
         [EmailAddress]
@@ -17,6 +17,6 @@ namespace Quanlinhahang.Models
         [Required]
         public string Phone { get; set; } = string.Empty;
 
-        public string? Address { get; set; } 
+        public string? Address { get; set; }
     }
 }

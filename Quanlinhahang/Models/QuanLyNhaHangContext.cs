@@ -39,6 +39,8 @@ public partial class QuanLyNhaHangContext : DbContext
 
     public virtual DbSet<TaiKhoan> TaiKhoans { get; set; }
 
+    public virtual DbSet<TrangThaiHoaDon> TrangThaiHoaDons { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=DESKTOP-F4EAUJ7\\SQLEXPRESS;Database=Quanlinhahang;Trusted_Connection=True;TrustServerCertificate=True;");
@@ -47,7 +49,7 @@ public partial class QuanLyNhaHangContext : DbContext
     {
         modelBuilder.Entity<BanPhong>(entity =>
         {
-            entity.HasKey(e => e.BanPhongId).HasName("PK__BanPhong__B2D0E957D822BFEF");
+            entity.HasKey(e => e.BanPhongId).HasName("PK__BanPhong__B2D0E957EB1A079A");
 
             entity.ToTable("BanPhong");
 
@@ -89,7 +91,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<DanhMucMon>(entity =>
         {
-            entity.HasKey(e => e.DanhMucId).HasName("PK__DanhMucM__1C53BA7B82A0E29B");
+            entity.HasKey(e => e.DanhMucId).HasName("PK__DanhMucM__1C53BA7B9B35B4FC");
 
             entity.ToTable("DanhMucMon");
 
@@ -100,7 +102,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<DatBan>(entity =>
         {
-            entity.HasKey(e => e.DatBanId).HasName("PK__DatBan__6A75F719655FFEEE");
+            entity.HasKey(e => e.DatBanId).HasName("PK__DatBan__6A75F71992BBC0BE");
 
             entity.ToTable("DatBan");
 
@@ -131,7 +133,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<HangThanhVien>(entity =>
         {
-            entity.HasKey(e => e.HangThanhVienId).HasName("PK__HangThan__16F81D7A09D4F66D");
+            entity.HasKey(e => e.HangThanhVienId).HasName("PK__HangThan__16F81D7ABA168CF3");
 
             entity.ToTable("HangThanhVien");
 
@@ -142,13 +144,13 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<HoaDon>(entity =>
         {
-            entity.HasKey(e => e.HoaDonId).HasName("PK__HoaDon__6956CE69B8A08F25");
+            entity.HasKey(e => e.HoaDonId).HasName("PK__HoaDon__6956CE69588183F5");
 
             entity.ToTable("HoaDon");
 
             entity.HasIndex(e => e.NgayLap, "IX_HoaDon_NgayLap");
 
-            entity.HasIndex(e => e.TrangThai, "IX_HoaDon_TrangThai");
+            entity.HasIndex(e => e.TrangThaiId, "IX_HoaDon_TrangThaiID");
 
             entity.Property(e => e.HoaDonId).HasColumnName("HoaDonID");
             entity.Property(e => e.DatBanId).HasColumnName("DatBanID");
@@ -158,9 +160,9 @@ public partial class QuanLyNhaHangContext : DbContext
             entity.Property(e => e.NgayLap).HasDefaultValueSql("(sysdatetime())");
             entity.Property(e => e.TaiKhoanId).HasColumnName("TaiKhoanID");
             entity.Property(e => e.TongTien).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TrangThai)
-                .HasMaxLength(30)
-                .HasDefaultValue("Chưa xác nhận");
+            entity.Property(e => e.TrangThaiId)
+                .HasDefaultValue(1)
+                .HasColumnName("TrangThaiID");
             entity.Property(e => e.Vat)
                 .HasDefaultValue(0.10m)
                 .HasColumnType("decimal(5, 2)")
@@ -174,11 +176,16 @@ public partial class QuanLyNhaHangContext : DbContext
             entity.HasOne(d => d.TaiKhoan).WithMany(p => p.HoaDons)
                 .HasForeignKey(d => d.TaiKhoanId)
                 .HasConstraintName("FK_HoaDon_TaiKhoan");
+
+            entity.HasOne(d => d.TrangThai).WithMany(p => p.HoaDons)
+                .HasForeignKey(d => d.TrangThaiId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_HoaDon_TrangThai");
         });
 
         modelBuilder.Entity<KhachHang>(entity =>
         {
-            entity.HasKey(e => e.KhachHangId).HasName("PK__KhachHan__880F211BC7C09F49");
+            entity.HasKey(e => e.KhachHangId).HasName("PK__KhachHan__880F211BF6A5779F");
 
             entity.ToTable("KhachHang");
 
@@ -207,7 +214,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<KhungGio>(entity =>
         {
-            entity.HasKey(e => e.KhungGioId).HasName("PK__KhungGio__CC9AB36A058A95CE");
+            entity.HasKey(e => e.KhungGioId).HasName("PK__KhungGio__CC9AB36AD5DE2CCA");
 
             entity.ToTable("KhungGio");
 
@@ -217,7 +224,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<LoaiBanPhong>(entity =>
         {
-            entity.HasKey(e => e.LoaiBanPhongId).HasName("PK__LoaiBanP__BA742BBF896B5143");
+            entity.HasKey(e => e.LoaiBanPhongId).HasName("PK__LoaiBanP__BA742BBF95252C96");
 
             entity.ToTable("LoaiBanPhong");
 
@@ -229,7 +236,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<MonAn>(entity =>
         {
-            entity.HasKey(e => e.MonAnId).HasName("PK__MonAn__272259EF86839E6D");
+            entity.HasKey(e => e.MonAnId).HasName("PK__MonAn__272259EF7D61DF8D");
 
             entity.ToTable("MonAn");
 
@@ -253,7 +260,7 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<NhanVien>(entity =>
         {
-            entity.HasKey(e => e.NhanVienId).HasName("PK__NhanVien__E27FD7EABE6B448F");
+            entity.HasKey(e => e.NhanVienId).HasName("PK__NhanVien__E27FD7EA4C009205");
 
             entity.ToTable("NhanVien");
 
@@ -273,13 +280,13 @@ public partial class QuanLyNhaHangContext : DbContext
 
         modelBuilder.Entity<TaiKhoan>(entity =>
         {
-            entity.HasKey(e => e.TaiKhoanId).HasName("PK__TaiKhoan__9A124B65019721A7");
+            entity.HasKey(e => e.TaiKhoanId).HasName("PK__TaiKhoan__9A124B65D9711FD1");
 
             entity.ToTable("TaiKhoan");
 
             entity.HasIndex(e => e.Email, "IX_TaiKhoan_Email");
 
-            entity.HasIndex(e => e.TenDangNhap, "UQ__TaiKhoan__55F68FC0AA38DA51").IsUnique();
+            entity.HasIndex(e => e.TenDangNhap, "UQ__TaiKhoan__55F68FC0789E828C").IsUnique();
 
             entity.Property(e => e.TaiKhoanId).HasColumnName("TaiKhoanID");
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -289,6 +296,18 @@ public partial class QuanLyNhaHangContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValue("Hoạt động");
             entity.Property(e => e.VaiTro).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<TrangThaiHoaDon>(entity =>
+        {
+            entity.HasKey(e => e.TrangThaiId).HasName("PK__TrangTha__D5BF1E859BAB7789");
+
+            entity.ToTable("TrangThaiHoaDon");
+
+            entity.HasIndex(e => e.TenTrangThai, "UQ__TrangTha__9489EF66BEB71FB2").IsUnique();
+
+            entity.Property(e => e.TrangThaiId).HasColumnName("TrangThaiID");
+            entity.Property(e => e.TenTrangThai).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);

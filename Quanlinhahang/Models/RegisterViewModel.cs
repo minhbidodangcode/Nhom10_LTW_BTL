@@ -1,34 +1,26 @@
 ﻿// Models/ViewModels/RegisterViewModel.cs
 using System.ComponentModel.DataAnnotations;
 
-namespace Quanlinhahang.Models;
-public class RegisterViewModel
+namespace Quanlinhahang.Models
 {
-    // Thông tin Khách hàng
-    [Required(ErrorMessage = "Họ và tên không được để trống.")]
-    public string FullName { get; set; }
+    public class RegisterViewModel
+    {
+        [Required]
+        public string FullName { get; set; } = string.Empty;
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        public string Phone { get; set; } = string.Empty;
+        public string? Address { get; set; }
+        [Required]
+        public string Username { get; set; } = string.Empty;
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
+        [DataType(DataType.Password)]
+        [Compare("Password")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 
-    [Required(ErrorMessage = "Email không được để trống.")]
-    [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
-    public string Email { get; set; }
-
-    [Required(ErrorMessage = "Số điện thoại không được để trống.")]
-    [RegularExpression(@"^0\d{9,10}$", ErrorMessage = "Số điện thoại không hợp lệ.")]
-    public string Phone { get; set; }
-
-    public string? Address { get; set; }
-
-    // Thông tin Tài khoản
-    [Required(ErrorMessage = "Tên đăng nhập không được để trống.")]
-    [StringLength(50, MinimumLength = 4, ErrorMessage = "Tên đăng nhập phải từ 4 đến 50 ký tự.")]
-    public string Username { get; set; }
-
-    [Required(ErrorMessage = "Mật khẩu không được để trống.")]
-    [StringLength(255, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
-    [DataType(DataType.Password)]
-    public string Password { get; set; }
-
-    [DataType(DataType.Password)]
-    [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
-    public string ConfirmPassword { get; set; }
 }

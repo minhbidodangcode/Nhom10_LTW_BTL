@@ -207,7 +207,8 @@ $(document).ready(function () {
                     if (res && res.success) {
                         localStorage.removeItem(LS_CART_KEY);
                         renderSummary();
-                        $("#bookingModal").fadeIn();
+                        $("#bookingModal").addClass("active");
+
                     } else {
                         const msg = (res && res.message) ? res.message : "Đặt bàn thất bại. Vui lòng thử lại.";
                         alert("Lỗi: " + msg);

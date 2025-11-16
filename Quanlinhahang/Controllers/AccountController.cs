@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Quanlinhahang.Models;
+using Quanlinhahang.Models; // Đảm bảo namespace này chứa Models VÀ ViewModels
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,10 +9,15 @@ public class AccountController : Controller
 {
     private readonly QuanLyNhaHangContext _context;
 
+    // 1. CONSTRUCTOR
     public AccountController(QuanLyNhaHangContext context)
     {
         _context = context;
     }
+
+    // ==========================================================
+    // ACTIONS (GET) ĐỂ MỞ CÁC VIEW (TRANG)
+    // ==========================================================
 
     [HttpGet("Dangki")]
     public IActionResult Dangki()
@@ -26,6 +31,21 @@ public class AccountController : Controller
         return View();
     }
 
+    [HttpGet("History")]
+    public IActionResult History()
+    {
+        return View();
+    }
+
+    [HttpGet("Vouchers")]
+    public IActionResult Vouchers()
+    {
+        return View();
+    }
+
+    // ==========================================================
+    // API (POST) CHO CHỨC NĂNG ĐĂNG KÝ
+    // ==========================================================
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
     {
@@ -42,7 +62,9 @@ public class AccountController : Controller
         {
             return Conflict(new { success = false, message = "Số điện thoại này đã được đăng ký." });
         }
+
         var hashedPassword = HashPassword(model.Password);
+
         using (var transaction = await _context.Database.BeginTransactionAsync())
         {
             try
@@ -57,6 +79,7 @@ public class AccountController : Controller
                 };
                 _context.TaiKhoans.Add(taiKhoan);
                 await _context.SaveChangesAsync();
+
                 var khachHang = new KhachHang
                 {
                     HoTen = model.FullName,
@@ -71,6 +94,7 @@ public class AccountController : Controller
                 };
                 _context.KhachHangs.Add(khachHang);
                 await _context.SaveChangesAsync();
+
                 await transaction.CommitAsync();
                 return Json(new { success = true, message = "Đăng ký tài khoản thành công! 🎉" });
             }
@@ -83,6 +107,9 @@ public class AccountController : Controller
         }
     }
 
+    // ==========================================================
+    // API (POST) CHO CHỨC NĂNG ĐĂNG NHẬP
+    // ==========================================================
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginViewModel model)
     {
@@ -90,18 +117,23 @@ public class AccountController : Controller
         {
             return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
+
         var taiKhoan = await _context.TaiKhoans
             .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+
         if (taiKhoan == null)
         {
             return Unauthorized(new { success = false, message = "Sai tài khoản hoặc mật khẩu." });
         }
+
         var inputPasswordHash = HashPassword(model.Password);
         if (taiKhoan.MatKhauHash != inputPasswordHash)
         {
             return Unauthorized(new { success = false, message = "Sai tài khoản hoặc mật khẩu." });
         }
+
         string fullName = taiKhoan.TenDangNhap;
+
         if (taiKhoan.VaiTro == "Customer")
         {
             var khachHang = await _context.KhachHangs
@@ -114,9 +146,67 @@ public class AccountController : Controller
                 .FirstOrDefaultAsync(nv => nv.TaiKhoanId == taiKhoan.TaiKhoanId);
             if (nhanVien != null) fullName = nhanVien.HoTen;
         }
+
         var userResponse = new { username = taiKhoan.TenDangNhap, fullName = fullName, role = taiKhoan.VaiTro };
         return Json(new { success = true, user = userResponse });
     }
+
+    // ==========================================================
+    // API (POST) CHO CHỨC NĂNG QUÊN MẬT KHẨU
+    // ==========================================================
+
+    [HttpPost("CheckUsername")]
+    public async Task<IActionResult> CheckUsername([FromBody] CheckUsernameViewModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.Username))
+        {
+            return BadRequest(new { success = false, message = "Vui lòng nhập tên đăng nhập." });
+        }
+
+        var taiKhoan = await _context.TaiKhoans
+            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+
+        if (taiKhoan == null)
+        {
+            return Json(new { success = false, message = "Tên đăng nhập không tồn tại." });
+        }
+        return Json(new { success = true });
+    }
+
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { success = false, message = "Mật khẩu mới không hợp lệ." });
+        }
+
+        var taiKhoan = await _context.TaiKhoans
+            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+
+        if (taiKhoan == null)
+        {
+            return NotFound(new { success = false, message = "Không tìm thấy tài khoản để khôi phục." });
+        }
+
+        var newHashedPassword = HashPassword(model.NewPassword);
+        taiKhoan.MatKhauHash = newHashedPassword;
+
+        try
+        {
+            _context.TaiKhoans.Update(taiKhoan);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Khôi phục thành công! Vui lòng đăng nhập bằng mật khẩu mới." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { success = false, message = "Lỗi server khi cập nhật mật khẩu." });
+        }
+    }
+
+    // ==========================================================
+    // API (GET/POST) CHO TRANG THÔNG TIN TÀI KHOẢN
+    // ==========================================================
 
     [HttpGet("GetUserInfo")]
     public async Task<IActionResult> GetUserInfo([FromQuery] string username)
@@ -127,35 +217,20 @@ public class AccountController : Controller
         }
 
         var khachHang = await _context.KhachHangs
-                                    .Include(k => k.TaiKhoan) 
+                                    .Include(k => k.TaiKhoan)
                                     .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == username);
-
         if (khachHang == null)
         {
             var nhanVien = await _context.NhanViens
-                                    .Include(n => n.TaiKhoan) 
+                                    .Include(n => n.TaiKhoan)
                                     .FirstOrDefaultAsync(n => n.TaiKhoan != null && n.TaiKhoan.TenDangNhap == username);
-
             if (nhanVien != null)
             {
-                return Json(new
-                {
-                    fullName = nhanVien.HoTen,
-                    email = nhanVien.TaiKhoan?.Email,
-                    phone = nhanVien.SoDienThoai,
-                    address = "N/A"
-                });
+                return Json(new { fullName = nhanVien.HoTen, email = nhanVien.TaiKhoan?.Email, phone = nhanVien.SoDienThoai, address = "N/A" });
             }
             return NotFound(new { success = false, message = "Không tìm thấy thông tin." });
         }
-
-        return Json(new
-        {
-            fullName = khachHang.HoTen,
-            email = khachHang.Email,
-            phone = khachHang.SoDienThoai,
-            address = khachHang.DiaChi
-        });
+        return Json(new { fullName = khachHang.HoTen, email = khachHang.Email, phone = khachHang.SoDienThoai, address = khachHang.DiaChi });
     }
 
     [HttpPost("UpdateUserInfo")]
@@ -165,32 +240,22 @@ public class AccountController : Controller
         {
             return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
-
         var khachHang = await _context.KhachHangs
-                                .Include(k => k.TaiKhoan) 
+                                .Include(k => k.TaiKhoan)
                                 .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == model.Username);
-
         if (khachHang == null)
         {
             return NotFound(new { success = false, message = "Không tìm thấy người dùng để cập nhật." });
         }
-
         khachHang.HoTen = model.FullName;
         khachHang.Email = model.Email;
         khachHang.SoDienThoai = model.Phone;
         khachHang.DiaChi = model.Address;
-
         try
         {
             _context.KhachHangs.Update(khachHang);
             await _context.SaveChangesAsync();
-
-            return Json(new
-            {
-                success = true,
-                message = "Cập nhật thông tin thành công!",
-                newFullName = khachHang.HoTen
-            });
+            return Json(new { success = true, message = "Cập nhật thông tin thành công!", newFullName = khachHang.HoTen });
         }
         catch (Exception ex)
         {
@@ -198,11 +263,9 @@ public class AccountController : Controller
         }
     }
 
-    [HttpGet("History")]
-    public IActionResult History()
-    {
-        return View();
-    }
+    // ==========================================================
+    // API (GET/POST) CHO TRANG LỊCH SỬ (HISTORY)
+    // ==========================================================
 
     [HttpGet("GetHistoryData")]
     public async Task<IActionResult> GetHistoryData([FromQuery] string username, [FromQuery] string status)
@@ -223,60 +286,130 @@ public class AccountController : Controller
         }
 
         // 2. Truy vấn cơ sở (Query)
-        // Tải cả DatBan và HoaDon liên quan
-        var query = _context.DatBans
-                            .Include(d => d.BanPhong)
-                            .Include(d => d.HoaDons)
-                            .Where(d => d.KhachHangId == khachHang.KhachHangId);
+        IQueryable<DatBan> query = _context.DatBans
+                                        .Include(d => d.BanPhong)
+                                        .Include(d => d.HoaDons)
+                                            .ThenInclude(h => h.TrangThai)
+                                        .Where(d => d.KhachHangId == khachHang.KhachHangId);
 
         // 3. Lọc theo trạng thái (status)
+        int? trangThaiId = null;
+        bool filterByDatBanStatus = false;
+        bool filterByDatBanHuy = false; // Cờ mới cho trạng thái Hủy
+
         switch (status.ToLower())
         {
             case "chưa xác nhận":
-                query = query.Where(d => d.TrangThai == "Chờ xác nhận");
+                filterByDatBanStatus = true;
                 break;
             case "đã xác nhận":
-                query = query.Where(d => d.TrangThai == "Đã xác nhận");
+                trangThaiId = 2;
                 break;
             case "đang phục vụ":
-                query = query.Where(d => d.TrangThai == "Đang phục vụ");
+                trangThaiId = 3;
                 break;
             case "đã thanh toán":
-                query = query.Where(d => d.HoaDons.Any(h => h.TrangThai == "Đã thanh toán"));
+                trangThaiId = 4;
                 break;
             case "đã hủy":
-                query = query.Where(d => d.TrangThai == "Đã hủy");
+                // SỬA LỖI: Chúng ta cần kiểm tra cả DatBan VÀ HoaDon
+                filterByDatBanHuy = true;
+                trangThaiId = 5;
                 break;
-
             case "tất cả":
             default:
                 break;
         }
 
+        // Áp dụng bộ lọc (ĐÃ SỬA LỖI)
+        if (filterByDatBanHuy)
+        {
+            // Lấy đơn HỦY từ Bảng DatBan (hủy sớm) HOẶC từ Bảng HoaDon (hủy muộn)
+            query = query.Where(d =>
+                d.TrangThai == "Đã hủy" ||
+                d.HoaDons.Any(h => h.TrangThaiId == trangThaiId.Value)
+            );
+        }
+        else if (trangThaiId.HasValue)
+        {
+            // Lọc các trạng thái Hóa đơn khác
+            query = query.Where(d => d.HoaDons.Any(h => h.TrangThaiId == trangThaiId.Value));
+        }
+        else if (filterByDatBanStatus)
+        {
+            // Lọc trạng thái "Chờ xác nhận"
+            query = query.Where(d => d.TrangThai == "Chờ xác nhận");
+        }
+
+        // 4. Chọn dữ liệu trả về (Giữ nguyên)
         var historyData = await query
-         .OrderByDescending(d => d.NgayDen)
-         .Select(d => new
-         {
-             datBanId = d.DatBanId, // <-- THÊM ID ĐỂ HỦY
-             ngayDen = d.NgayDen.ToString("dd/MM/yyyy"),
-             tenBanPhong = d.BanPhong != null ? d.BanPhong.TenBanPhong : "N/A",
-             soNguoi = d.SoNguoi,
-             trangThaiDatBan = d.TrangThai,
-             trangThaiThanhToan = d.HoaDons.OrderByDescending(h => h.NgayLap).Select(h => h.TrangThai).FirstOrDefault()
-         })
-         .ToListAsync();
+            .OrderByDescending(d => d.NgayDen)
+            .Select(d => new
+            {
+                datBanId = d.DatBanId,
+                ngayDen = d.NgayDen.ToString("dd/MM/yyyy"),
+                tenBanPhong = d.BanPhong != null ? d.BanPhong.TenBanPhong : "N/A",
+                soNguoi = d.SoNguoi,
+                trangThaiDatBan = d.TrangThai,
+                trangThaiHoaDon = d.HoaDons
+                                    .OrderByDescending(h => h.NgayLap)
+                                    .Select(h => h.TrangThai.TenTrangThai)
+                                    .FirstOrDefault()
+            })
+            .ToListAsync();
 
-        return Json(historyData);
+        return Json(new { success = true, list = historyData });
     }
 
-    [HttpGet("Vouchers")]
-    public IActionResult Vouchers()
+    [HttpPost("CancelBooking")]
+    public async Task<IActionResult> CancelBooking([FromBody] CancelBookingRequest req)
     {
-        // Trả về View Views/Account/Vouchers.cshtml
-        return View();
+        if (string.IsNullOrEmpty(req.Username) || req.DatBanId <= 0)
+        {
+            return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        var khachHang = await _context.KhachHangs.Include(k => k.TaiKhoan)
+            .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == req.Username);
+
+        if (khachHang == null)
+        {
+            return Unauthorized(new { success = false, message = "Không tìm thấy người dùng." });
+        }
+
+        var datBan = await _context.DatBans
+            .Include(d => d.HoaDons)
+            .FirstOrDefaultAsync(d => d.DatBanId == req.DatBanId && d.KhachHangId == khachHang.KhachHangId);
+
+        if (datBan == null)
+        {
+            return NotFound(new { success = false, message = "Không tìm thấy đơn đặt bàn này." });
+        }
+
+        if (datBan.TrangThai != "Chờ xác nhận")
+        {
+            return BadRequest(new { success = false, message = "Không thể hủy đơn. Đơn đã được xác nhận hoặc xử lý." });
+        }
+
+        datBan.TrangThai = "Đã hủy";
+
+        var hoaDon = datBan.HoaDons.FirstOrDefault();
+        if (hoaDon != null)
+        {
+            hoaDon.TrangThaiId = 5; // ID 5 = Đã hủy
+            _context.HoaDons.Update(hoaDon);
+        }
+
+        _context.DatBans.Update(datBan);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true, message = "Đã hủy đơn thành công." });
     }
 
-    // 2. Action (API) [GET] để LẤY danh sách Voucher của khách hàng
+    // ==========================================================
+    // API (GET) CHO TRANG VOUCHER (LOGIC GIẢ LẬP)
+    // ==========================================================
+
     [HttpGet("GetUserVouchers")]
     public async Task<IActionResult> GetUserVouchers([FromQuery] string username)
     {
@@ -285,10 +418,9 @@ public class AccountController : Controller
             return BadRequest(new { success = false, message = "Không tìm thấy người dùng." });
         }
 
-        // Lấy ID và Điểm tích lũy của khách hàng
         var khachHang = await _context.KhachHangs
                                     .Include(k => k.TaiKhoan)
-                                    .Include(k => k.HangThanhVien) // Tải hạng thành viên để hiển thị
+                                    .Include(k => k.HangThanhVien)
                                     .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == username);
 
         if (khachHang == null)
@@ -296,17 +428,10 @@ public class AccountController : Controller
             return NotFound(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
         }
 
-        // ===============================================
-        // GIẢ LẬP LOGIC LẤY VOUCHER (vì bạn chưa có bảng Voucher)
-        // ===============================================
-
-        // Giả định 1: Voucher dựa trên Hạng thành viên
         string hangThanhVien = khachHang.HangThanhVien?.TenHang ?? "Thường";
         int diem = khachHang.DiemTichLuy;
 
         var vouchers = new List<object>();
-
-        // Voucher cố định cho mọi Khách hàng đã đăng nhập
         vouchers.Add(new
         {
             code = "WELCOME10",
@@ -316,8 +441,6 @@ public class AccountController : Controller
             expiry = DateTime.Today.AddDays(30).ToString("dd/MM/yyyy"),
             description = "Giảm 10% cho đơn hàng đầu tiên."
         });
-
-        // Voucher thưởng theo Điểm (Ví dụ)
         if (diem >= 1000)
         {
             vouchers.Add(new
@@ -330,8 +453,6 @@ public class AccountController : Controller
                 description = $"Tặng 1 đồ uống miễn phí (Hạng {hangThanhVien})."
             });
         }
-
-        // Voucher đặc biệt cho hạng Kim cương
         if (hangThanhVien == "Kim cương")
         {
             vouchers.Add(new
@@ -353,64 +474,11 @@ public class AccountController : Controller
             list = vouchers
         });
     }
-    [HttpPost("CheckUsername")]
-    public async Task<IActionResult> CheckUsername([FromBody] CheckUsernameViewModel model)
-    {
-        if (string.IsNullOrWhiteSpace(model.Username))
-        {
-            return BadRequest(new { success = false, message = "Vui lòng nhập tên đăng nhập." });
-        }
-
-        var taiKhoan = await _context.TaiKhoans
-            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
-
-        if (taiKhoan == null)
-        {
-            return Json(new { success = false, message = "Tên đăng nhập không tồn tại." });
-        }
-
-        // Nếu tài khoản tồn tại, trả về thành công để chuyển sang bước 2
-        return Json(new { success = true });
-    }
 
 
-    // [POST] /Account/ResetPassword (Bước 2: Đặt lại mật khẩu)
-    [HttpPost("ResetPassword")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new { success = false, message = "Mật khẩu mới không hợp lệ." });
-        }
-
-        // 1. Tìm tài khoản
-        var taiKhoan = await _context.TaiKhoans
-            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
-
-        if (taiKhoan == null)
-        {
-            // Điều này không nên xảy ra nếu Bước 1 đã thành công
-            return NotFound(new { success = false, message = "Không tìm thấy tài khoản để khôi phục." });
-        }
-
-        // 2. Hash mật khẩu mới
-        var newHashedPassword = HashPassword(model.NewPassword);
-
-        // 3. Cập nhật mật khẩu trong CSDL
-        taiKhoan.MatKhauHash = newHashedPassword;
-
-        try
-        {
-            _context.TaiKhoans.Update(taiKhoan);
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Khôi phục thành công! Vui lòng đăng nhập bằng mật khẩu mới." });
-        }
-        catch (Exception ex)
-        {
-            // Ghi log ex (ex.Message)
-            return StatusCode(500, new { success = false, message = "Lỗi server khi cập nhật mật khẩu." });
-        }
-    }
+    // ==========================================================
+    // HÀM HỖ TRỢ (PRIVATE)
+    // ==========================================================
 
     private string HashPassword(string password)
     {

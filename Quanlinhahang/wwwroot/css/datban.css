@@ -336,7 +336,6 @@ body {
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        background: var(--success-green);
         color: #0a0a0a;
         font-size: 34px;
     }

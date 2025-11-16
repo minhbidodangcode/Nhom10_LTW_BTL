@@ -22,8 +22,15 @@
                 username: auth.username,
                 status: status
             },
-            success: function (data) {
+            success: function (res) {
+                // SỬA LỖI: Đọc dữ liệu từ res.list
+                if (!res.success || !res.list) {
+                    $resultsContainer.html(`<p class="no-results">Lỗi: ${res.message || 'Không thể tải dữ liệu.'}</p>`);
+                    return;
+                }
+
                 $resultsContainer.empty();
+                const data = res.list;
 
                 if (data.length === 0) {
                     $resultsContainer.html('<p class="no-results">Không tìm thấy lịch sử nào.</p>');
@@ -32,62 +39,65 @@
 
                 data.forEach(item => {
                     let statusClass = "status-cho-xac-nhan";
-                    let statusText = item.trangThaiDatBan;
+                    // Ưu tiên trạng thái Hóa đơn (Đã thanh toán, Đã hủy, v.v.)
+                    let statusText = item.trangThaiHoaDon || item.trangThaiDatBan;
                     let actionButtonsHtml = '';
                     let slideClass = '';
 
-                    // (Logic gán statusClass/statusText giữ nguyên)
-                    if (item.trangThaiThanhToan === "Đã thanh toán") {
-                        statusClass = "status-da-thanh-toan";
-                        statusText = "Đã thanh toán";
-                    }
-                    else if (item.trangThaiDatBan === "Đã xác nhận") {
-                        statusClass = "status-da-xac-nhan";
-                    }
-                    else if (item.trangThaiDatBan === "Đang phục vụ") {
-                        statusClass = "status-dang-phuc-vu";
-                    }
-                    else if (item.trangThaiDatBan === "Đã hủy") {
-                        statusClass = "status-da-huy";
+                    // Gán class CSS dựa trên text
+                    switch (statusText) {
+                        case "Đã xác nhận":
+                            statusClass = "status-da-xac-nhan";
+                            break;
+                        case "Đang phục vụ":
+                            statusClass = "status-dang-phuc-vu";
+                            break;
+                        case "Đã thanh toán":
+                            statusClass = "status-da-thanh-toan";
+                            break;
+                        case "Đã hủy":
+                            statusClass = "status-da-huy";
+                            break;
+                        default: // Chờ xác nhận
+                            statusClass = "status-cho-xac-nhan";
                     }
 
-                    // (Logic tạo nút giữ nguyên)
+                    // TẠO NÚT HÀNH ĐỘNG DỰA TRÊN TRẠNG THÁI
                     if (item.trangThaiDatBan === "Chờ xác nhận") {
                         actionButtonsHtml = `
-                        <button class="action-btn view" data-id="${item.datBanId}">Xem</button>
-                        <button class="action-btn cancel" data-id="${item.datBanId}">Hủy</button>
-                    `;
+                            <button class="action-btn view" data-id="${item.datBanId}">Xem</button>
+                            <button class="action-btn cancel" data-id="${item.datBanId}">Hủy</button>
+                        `;
                         slideClass = 'actions-open';
                     } else {
                         actionButtonsHtml = `
-                        <button class="action-btn view" data-id="${item.datBanId}">Xem</button>
-                    `;
+                            <button class="action-btn view" data-id="${item.datBanId}">Xem</button>
+                        `;
                         slideClass = 'actions-open-single';
                     }
 
-                    // === SỬA LỖI: ĐẢO NGƯỢC THỨ TỰ HTML ===
-                    // Panel Nội dung phải được render TRƯỚC Panel Hành động
+                    // TẠO HTML MỚI (Đảo ngược thứ tự)
                     const itemHtml = `
-                    <div class="history-item" id="booking-item-${item.datBanId}">
-                        <div class="history-item-content" data-slide-class="${slideClass}">
-                            <div class="history-item-info">
-                                <h4>Bàn: ${item.tenBanPhong}</h4>
-                                <p>Ngày đến: ${item.ngayDen}</p>
-                                <p>Số người: ${item.soNguoi}</p>
+                        <div class="history-item" id="booking-item-${item.datBanId}">
+                            <div class="history-item-content" data-slide-class="${slideClass}">
+                                <div class="history-item-info">
+                                    <h4>Bàn: ${item.tenBanPhong}</h4>
+                                    <p>Ngày đến: ${item.ngayDen}</p>
+                                    <p>Số người: ${item.soNguoi}</p>
+                                </div>
+                                <div class="history-item-status ${statusClass}">
+                                    ${statusText}
+                                </div>
+                                <div class="history-item-action">
+                                    <button class="btn-options" aria-label="Tùy chọn">⋮</button>
+                                </div>
                             </div>
-                            <div class="history-item-status ${statusClass}">
-                                ${statusText}
-                            </div>
-                            <div class="history-item-action">
-                                <button class="btn-options" aria-label="Tùy chọn">⋮</button>
-                            </div>
-                        </div>
 
-                        <div class="history-item-actions">
-                            ${actionButtonsHtml}
+                            <div class="history-item-actions">
+                                ${actionButtonsHtml}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
                     $resultsContainer.append(itemHtml);
                 });
             },
@@ -108,7 +118,7 @@
     // --- 3. SỰ KIỆN MỚI: Click nút Ba Chấm (Mở menu trượt) ---
     $resultsContainer.on("click", ".btn-options", function (e) {
         e.preventDefault();
-        e.stopPropagation(); // Ngăn click lan ra ngoài
+        e.stopPropagation();
 
         const $content = $(this).closest('.history-item-content');
         const slideClass = $content.data('slide-class');
@@ -133,7 +143,7 @@
     // --- 5. SỰ KIỆN MỚI: Click nút Hủy (bên trong panel) ---
     $resultsContainer.on("click", ".action-btn.cancel", function (e) {
         e.preventDefault();
-        e.stopPropagation(); // Ngăn click lan ra ngoài
+        e.stopPropagation();
 
         const $btn = $(this);
         const datBanId = $btn.data("id");
@@ -169,17 +179,8 @@
         });
     });
 
-    // --- 6. SỰ KIỆN MỚI: Click nút Xem (bên trong panel) ---
-    $resultsContainer.on("click", ".action-btn.view", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const datBanId = $(this).data("id");
-        // TODO: Chuyển sang trang Chi tiết đơn hàng
-        alert("Chức năng 'Xem chi tiết' cho đơn hàng #" + datBanId + " đang được phát triển.");
-    });
-
-
     // --- 7. Tải dữ liệu ban đầu ---
     fetchHistory("tất cả");
 
 });
+
