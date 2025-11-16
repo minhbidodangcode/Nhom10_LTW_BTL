@@ -1,8 +1,4 @@
-﻿/* =========================================================
-   🌙 GIAO DIỆN TRANG ĐẶT BÀN / TÓM TẮT ĐƠN HÀNG (Dark Theme)
-   ========================================================= */
-
-/* RESET & ROOT -------------------------------------------------------------*/
+﻿/* RESET & ROOT -------------------------------------------------------------*/
 * {
     margin: 0;
     padding: 0;
@@ -31,9 +27,13 @@ body {
     line-height: 1.6;
 }
 
+.main-content {
+    margin-top: 150px;
+}
+
 .container {
     max-width: var(--container-max);
-    margin: 0 auto;
+    margin: 0px auto;
     padding: 0 20px;
 }
 
@@ -45,7 +45,6 @@ body {
     letter-spacing: 1px;
 }
 
-/* PANEL (khung chứa từng phần) --------------------------------------------*/
 .panel {
     background: var(--dark-bg);
     border: 1px solid var(--border-color);
@@ -55,13 +54,11 @@ body {
 }
 
 /* ========================================================================== */
-/* 🧾 ORDER SUMMARY */
+/* 🧾 ORDER SUMMARY (Giữ nguyên) */
 /* ========================================================================== */
-
-/* HEADER CỦA BẢNG */
 .summary-header {
     display: grid;
-    grid-template-columns: 60px 820px 140px 100px 124px; /* STT | Tên | Giá | SL | Thành tiền */
+    grid-template-columns: 30px 2fr 1fr 1.5fr 1.5fr 50px;
     gap: 12px;
     align-items: center;
     padding: 12px 12px 12px 18px;
@@ -72,26 +69,25 @@ body {
     font-size: 0.95rem;
 }
 
-    .summary-header .summary-col:nth-child(1) {
+    .summary-header div:nth-child(1) {
         text-align: center;
     }
 
-    .summary-header .summary-col:nth-child(2) {
+    .summary-header div:nth-child(2) {
         text-align: left;
         padding-left: 6px;
     }
 
-    .summary-header .summary-col:nth-child(3),
-    .summary-header .summary-col:nth-child(5) {
+    .summary-header div:nth-child(3),
+    .summary-header div:nth-child(5) {
         text-align: right;
         padding-right: 8px;
     }
 
-    .summary-header .summary-col:nth-child(4) {
+    .summary-header div:nth-child(4) {
         text-align: center;
     }
 
-/* NỘI DUNG CỦA BẢNG */
 .summary-body {
     display: flex;
     flex-direction: column;
@@ -99,10 +95,9 @@ body {
     padding: 12px 6px;
 }
 
-/* MỖI HÀNG MÓN ĂN */
 .summary-row {
     display: grid;
-    grid-template-columns: 60px 1fr 140px 100px 150px;
+    grid-template-columns: 30px 2fr 1fr 1.5fr 1.5fr 50px;
     gap: 12px;
     align-items: center;
     padding: 14px;
@@ -118,44 +113,41 @@ body {
         border-color: #333;
     }
 
-    /* CĂN CHỮ CÁC CỘT */
-    .summary-row .stt {
+    .summary-row .summary-col:nth-child(1) {
         text-align: center;
         color: #ddd;
     }
 
-    .summary-row .name {
+    .summary-row .summary-col:nth-child(2) {
         text-align: left;
         padding-left: 6px;
         font-weight: 600;
     }
 
-    .summary-row .price {
+    .summary-row .summary-col:nth-child(3) {
         text-align: right;
         color: var(--text-gray);
         white-space: nowrap;
     }
 
-    .summary-row .qty {
+    .summary-row .summary-col:nth-child(4) {
         text-align: center;
         color: #fff;
     }
 
-    .summary-row .subtotal {
+    .summary-row .summary-col:nth-child(5) {
         text-align: right;
         font-weight: 800;
         color: var(--primary-color);
         white-space: nowrap;
     }
 
-/* GIỎ HÀNG TRỐNG */
 .empty-cart {
     text-align: center;
     color: var(--text-gray);
     padding: 2rem;
 }
 
-/* TỔNG TIỀN */
 .summary-total {
     display: flex;
     justify-content: space-between;
@@ -167,20 +159,19 @@ body {
     font-weight: 800;
 }
 
-    .summary-total .label {
+    .summary-total span:first-child {
         color: var(--text-light);
     }
 
-    .summary-total .amount {
+    .summary-total .total-amount {
         color: var(--primary-color);
         font-size: 1.45rem;
         font-weight: 900;
     }
 
 /* ========================================================================== */
-/* 🧍 FORM ĐẶT BÀN */
+/* 🧍 FORM ĐẶT BÀN (ĐÃ TÁCH CLASS) */
 /* ========================================================================== */
-
 .booking-form {
     background: var(--dark-bg);
     border-radius: var(--card-radius);
@@ -205,27 +196,79 @@ body {
         grid-column: 1 / -1;
     }
 
-.form-control {
+/* === 1. CSS CHO DẠNG NHẬP (input, textarea) === */
+.form-input {
     background: #0b0b0b;
     border: 1px solid var(--border-color);
-    color: var(--text-light);
     padding: 0.9rem 1rem;
     border-radius: 8px;
     font-size: 1rem;
-    transition: all 0.2s ease;
+    transition: color 0.3s ease, border-color 0.3s ease;
+    color: var(--text-gray); /* Chữ mờ mặc định */
 }
 
-    .form-control::placeholder {
+    .form-input::placeholder {
         color: var(--text-gray);
     }
 
-    .form-control:focus {
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        color: var(--text-light); /* Chữ sáng khi focus */
+        box-shadow: 0 0 0 4px rgba(255,215,0,0.06);
+    }
+
+    .form-input:hover {
+        border-color: var(--primary-color, #c59d5f);
+        color: var(--text-light); /* Chữ sáng khi hover */
+    }
+
+/* === 2. CSS CHO DẠNG CHỌN (select) === */
+.form-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: #0b0b0b;
+    color: var(--text-light); /* Chữ luôn sáng */
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23b0b0b0'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd' /%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2em 1.2em;
+    border: 1px solid var(--border-color);
+    padding: 0.9rem 1rem;
+    padding-right: 2.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+    .form-select:hover {
+        border-color: var(--primary-color, #c59d5f);
+    }
+
+    .form-select:focus {
         outline: none;
         border-color: var(--primary-color);
         box-shadow: 0 0 0 4px rgba(255,215,0,0.06);
     }
 
-/* NÚT GỬI FORM */
+    .form-select option {
+        background: var(--dark-bg, #1a1a1a);
+        color: var(--text-light, #ffffff);
+    }
+        /* Style cho option placeholder (vd: -- Chọn --) */
+        .form-select option[value=""] {
+            color: var(--text-gray);
+        }
+
+    .form-select:invalid {
+        color: var(--text-gray); /* Hiển thị placeholder màu xám */
+    }
+
+/* ========================================================================== */
+/* CÁC PHẦN KHÁC (Giữ nguyên) */
+/* ========================================================================== */
 .form-actions {
     display: flex;
     gap: 12px;
@@ -258,9 +301,6 @@ body {
     border: 1px solid var(--border-color);
 }
 
-/* ========================================================================== */
-/* ✅ MODAL XÁC NHẬN ĐẶT BÀN */
-/* ========================================================================== */
 #bookingModal {
     display: none;
     position: fixed;
@@ -330,19 +370,59 @@ body {
             transform: translateY(-1px);
         }
 
-/* ========================================================================== */
-/* 📱 RESPONSIVE */
-/* ========================================================================== */
-@media (max-width: 1024px) {
-    .page-title {
-        font-size: 1.9rem;
-    }
-
-    .summary-header {
-        font-size: 0.9rem;
-    }
+.qty-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px;
+    max-width: 110px;
+    margin: 0 auto;
 }
 
+    .qty-controls .qty {
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0 5px;
+        color: var(--text-light);
+    }
+
+.qty-btn {
+    background: transparent;
+    color: var(--text-gray);
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+    .qty-btn:hover {
+        color: var(--text-light);
+    }
+
+.remove-btn {
+    background: transparent;
+    border: none;
+    color: var(--accent-red);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s;
+    text-align: center;
+}
+
+    .remove-btn:hover {
+        color: #ff6b6b;
+    }
+
+/* RESPONSIVE */
 @media (max-width: 768px) {
     .summary-header {
         display: none;
@@ -353,30 +433,37 @@ body {
         gap: 10px 12px;
     }
 
-        .summary-row .stt {
+        .summary-row .summary-col:nth-child(1) {
             order: 0;
             opacity: 0.8;
+            text-align: left;
         }
 
-        .summary-row .name {
+        .summary-row .summary-col:nth-child(2) {
             order: 1;
             grid-column: 1 / -1;
         }
 
-        .summary-row .price {
+        .summary-row .summary-col:nth-child(3) {
             order: 2;
             text-align: left;
             color: var(--text-gray);
         }
 
-        .summary-row .qty {
+        .summary-row .summary-col:nth-child(4) {
             order: 3;
             text-align: left;
         }
 
-        .summary-row .subtotal {
+        .summary-row .summary-col:nth-child(5) {
             order: 4;
             grid-column: 2 / -1;
+            text-align: right;
+        }
+
+        .summary-row .summary-col:nth-child(6) {
+            order: 5;
+            grid-column: 1 / 2;
             text-align: right;
         }
 
@@ -388,6 +475,7 @@ body {
         width: 100%;
     }
 }
+
 .text-muted {
     color: var(--text-gray);
     font-size: .95rem;

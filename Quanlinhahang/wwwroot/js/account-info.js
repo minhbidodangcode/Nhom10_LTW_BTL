@@ -9,7 +9,6 @@
 
     let originalData = {};
 
-    // --- 1. Hàm tải dữ liệu người dùng ---
     function loadUserData() {
         console.log("Hàm loadUserData() đã được gọi.");
 
@@ -21,10 +20,7 @@
 
         const auth = JSON.parse(authRaw);
 
-        // === SỬA LỖI 1: Điền Tên đăng nhập TẠI ĐÂY ===
-        // Vì 'auth' chỉ tồn tại trong hàm này
         $("#regUsername").val(auth.username);
-        // ==========================================
 
         $.ajax({
             url: "/Account/GetUserInfo",
@@ -33,7 +29,7 @@
             success: function (data) {
                 console.log("AJAX Success (Đã nhận được dữ liệu):", data);
                 originalData = data;
-                populateForm(data); // Chỉ điền dữ liệu từ AJAX
+                populateForm(data); 
             },
             error: function (xhr) {
                 console.error("AJAX Error (Lỗi server):", xhr.status, xhr.responseJSON);
@@ -44,11 +40,7 @@
         console.log("Đã gửi yêu cầu AJAX...");
     }
 
-    // Hàm phụ: Đổ dữ liệu vào form
     function populateForm(data) {
-        // === SỬA LỖI 2: XÓA DÒNG LỖI TẠI ĐÂY ===
-        // $("#regUsername").val(auth.username); // 'auth' không tồn tại ở đây
-        // =======================================
 
         $("#regFullName").val(data.fullName);
         $("#regEmail").val(data.email);
@@ -56,7 +48,6 @@
         $("#regAddress").val(data.address);
     }
 
-    // --- 2. Hàm chuyển đổi chế độ (Xem / Sửa) ---
     function setEditMode(isEditing) {
         $fieldset.prop("disabled", !isEditing);
         if (isEditing) {
@@ -72,17 +63,15 @@
         }
     }
 
-    // --- 3. Gắn sự kiện Click ---
     $btnEdit.on("click", function () {
         setEditMode(true);
     });
 
     $btnCancel.on("click", function () {
-        populateForm(originalData); // Khôi phục dữ liệu gốc (trừ username)
+        populateForm(originalData); 
         setEditMode(false);
     });
 
-    // Bấm nút "Lưu thay đổi" (Submit form)
     $form.on("submit", function (e) {
         e.preventDefault();
         const auth = JSON.parse(getAuthState());
@@ -113,13 +102,10 @@
                         address: updatedData.address
                     };
 
-                    // Cập nhật lại tên trên Navbar
                     auth.fullName = response.newFullName;
 
-                    // === SỬA LỖI 3: Thêm tham số 'remember' ===
                     saveAuthState(auth, localStorage.getItem("authUser") != null);
-                    applyAuthUI(); // Hàm này từ navbar.js
-                    // ======================================
+                    applyAuthUI(); 
 
                     setEditMode(false);
                 } else {
@@ -135,7 +121,6 @@
         });
     });
 
-    // --- 4. Hàm hiển thị thông báo ---
     function showError(msg) {
         $errorMsg.text(msg).slideDown();
         $successMsg.slideUp();
@@ -145,6 +130,5 @@
         $errorMsg.slideUp();
     }
 
-    // --- 5. Chạy khi tải trang ---
     loadUserData();
 });

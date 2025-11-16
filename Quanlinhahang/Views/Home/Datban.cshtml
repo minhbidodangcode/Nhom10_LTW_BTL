@@ -14,6 +14,7 @@
                 <div>Giá</div>
                 <div>SL</div>
                 <div>Thành tiền</div>
+                <div>Xóa</div>
             </div>
 
             <div class="summary-body" id="summaryBody">
@@ -40,12 +41,12 @@
                     <div class="form-group">
                         <label for="bookingDate">Ngày đặt</label>
                         <input type="date" id="bookingDate" name="bookingDate"
-                               class="form-control" required />
+                               class="form-input" required />
                     </div>
 
                     <div class="form-group">
                         <label for="timeSlot">Khung giờ</label>
-                        <select id="timeSlot" name="timeSlot" class="form-control" required>
+                        <select id="timeSlot" name="timeSlot" class="form-select" required>
                             <option value="">-- Chọn khung giờ --</option>
                             <option value="Trua">Trưa (11:00 - 13:30)</option>
                             <option value="Toi">Tối (18:00 - 21:30)</option>
@@ -55,12 +56,12 @@
                     <div class="form-group">
                         <label for="guestCount">Số lượng khách</label>
                         <input type="number" id="guestCount" name="guestCount"
-                               class="form-control" min="1" max="50" value="2" required />
+                               class="form-input" min="1" max="50" value="2" required />
                     </div>
 
                     <div class="form-group">
                         <label for="tableType">Loại bàn / phòng</label>
-                        <select id="tableType" name="tableType" class="form-control">
+                        <select id="tableType" name="tableType" class="form-select">
                             <option value="">Không yêu cầu</option>
                             <option value="Thuong">Bàn thường</option>
                             <option value="Vip">Bàn VIP</option>
@@ -70,14 +71,9 @@
 
                     <div class="form-group full-width">
                         <label for="note">Ghi chú thêm</label>
-                        <textarea id="note" name="note" class="form-control"
+                        <textarea id="note" name="note" class="form-input"
                                   placeholder="Ví dụ: cần ghép bàn, có trẻ nhỏ, dị ứng hải sản..."></textarea>
                     </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn-submit">Xác nhận đặt bàn</button>
-                    <button type="reset" class="btn-reset">Làm mới</button>
                 </div>
             </form>
         </section>

@@ -233,7 +233,6 @@ public class AccountController : Controller
         switch (status.ToLower())
         {
             case "chưa xác nhận":
-                // TrangThai trong DatBan: "Chờ xác nhận"
                 query = query.Where(d => d.TrangThai == "Chờ xác nhận");
                 break;
             case "đã xác nhận":
@@ -243,27 +242,29 @@ public class AccountController : Controller
                 query = query.Where(d => d.TrangThai == "Đang phục vụ");
                 break;
             case "đã thanh toán":
-                // Lọc DatBan có ít nhất một HoaDon có TrangThai = "Đã thanh toán"
                 query = query.Where(d => d.HoaDons.Any(h => h.TrangThai == "Đã thanh toán"));
                 break;
+            case "đã hủy":
+                query = query.Where(d => d.TrangThai == "Đã hủy");
+                break;
+
             case "tất cả":
             default:
-                // Không lọc gì thêm
                 break;
         }
 
-        // 4. Chọn dữ liệu trả về cho JavaScript
         var historyData = await query
-            .OrderByDescending(d => d.NgayDen)
-            .Select(d => new
-            {
-                ngayDen = d.NgayDen.ToString("dd/MM/yyyy"),
-                tenBanPhong = d.BanPhong != null ? d.BanPhong.TenBanPhong : "N/A",
-                soNguoi = d.SoNguoi,
-                trangThaiDatBan = d.TrangThai,
-                trangThaiThanhToan = d.HoaDons.OrderByDescending(h => h.NgayLap).Select(h => h.TrangThai).FirstOrDefault()
-            })
-            .ToListAsync();
+         .OrderByDescending(d => d.NgayDen)
+         .Select(d => new
+         {
+             datBanId = d.DatBanId, // <-- THÊM ID ĐỂ HỦY
+             ngayDen = d.NgayDen.ToString("dd/MM/yyyy"),
+             tenBanPhong = d.BanPhong != null ? d.BanPhong.TenBanPhong : "N/A",
+             soNguoi = d.SoNguoi,
+             trangThaiDatBan = d.TrangThai,
+             trangThaiThanhToan = d.HoaDons.OrderByDescending(h => h.NgayLap).Select(h => h.TrangThai).FirstOrDefault()
+         })
+         .ToListAsync();
 
         return Json(historyData);
     }

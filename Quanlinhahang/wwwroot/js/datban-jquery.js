@@ -1,16 +1,16 @@
 // datban-jquery.js
+
 const LS_CART_KEY = "cart";
 const vnd = (n) => (n || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-// === ĐỊNH NGHĨA GLOBAL CHO CÁC FILE KHÁC DÙNG ===
 function safeParse(raw) {
     try { return JSON.parse(raw); } catch { return null; }
 }
 function getAuthState() {
     return localStorage.getItem("authUser") || sessionStorage.getItem("authUser") || null;
 }
-// ===============================================
 
+// Trả về mảng item [{id,name,price,qty},...]
 function getCartArray() {
     const raw = localStorage.getItem(LS_CART_KEY);
     if (!raw) return [];
@@ -37,6 +37,7 @@ function cartTotal(arr) {
     return (arr || []).reduce((s, it) => s + (Number(it.price || 0) * Number(it.qty || 0)), 0);
 }
 
+// === HÀM RENDER ĐÃ ĐƯỢC CẬP NHẬT ===
 function renderSummary() {
     const data = getCartArray();
     const $body = $("#summaryBody");
@@ -53,13 +54,22 @@ function renderSummary() {
     data.forEach((item, idx) => {
         const thanhTien = Number(item.price || 0) * Number(item.qty || 0);
         total += thanhTien;
+
+        // Cập nhật HTML để bao gồm các nút
         html += `
-            <div class="summary-row">
+            <div class="summary-row" data-id="${item.id}">
                 <div class="summary-col">${idx + 1}</div>
                 <div class="summary-col">${item.name}</div>
                 <div class="summary-col">${vnd(item.price)}</div>
-                <div class="summary-col">${item.qty}</div>
+                <div class="summary-col qty-controls">
+                    <button class="qty-btn minus" data-id="${item.id}" aria-label="Giảm">−</button>
+                    <span class="qty">${item.qty}</span>
+                    <button class="qty-btn plus" data-id="${item.id}" aria-label="Tăng">+</button>
+                </div>
                 <div class="summary-col">${vnd(thanhTien)}</div>
+                <div class="summary-col">
+                    <button class="remove-btn" data-id="${item.id}" aria-label="Xóa">&times;</button>
+                </div>
             </div>
         `;
     });
@@ -89,25 +99,62 @@ function renderUserGreeting() {
 $(document).ready(function () {
     renderSummary();
 
-    // 🚨 BƯỚC 1: KIỂM TRA ĐĂNG NHẬP VÀ HIỂN THỊ TÊN
     const username = renderUserGreeting();
     if (!username) {
-        // Nếu chưa đăng nhập, ẩn form và hiển thị thông báo
         $("#bookingForm").hide();
         $("#userGreetingBox").html('<p class="alert-error">Bạn cần đăng nhập để đặt bàn. Vui lòng đăng nhập hoặc <a href="/Account/Dangki">đăng ký</a>.</p>').show();
         return;
     }
 
+    // === THÊM CÁC HÀM XỬ LÝ SỰ KIỆN MỚI ===
 
-    // Một handler duy nhất cho submit
+    // Xử lý click nút +/-
+    $("#summaryBody").on("click", ".qty-btn", function (e) {
+        e.preventDefault();
+        const $btn = $(this);
+        const id = $btn.data("id");
+        let cart = getCartArray();
+        const item = cart.find(i => String(i.id) === String(id));
+
+        if (!item) return;
+
+        if ($btn.hasClass("plus")) {
+            item.qty++;
+        } else if ($btn.hasClass("minus")) {
+            item.qty--;
+        }
+
+        if (item.qty <= 0) {
+            // Nếu số lượng về 0, xóa món
+            cart = cart.filter(i => String(i.id) !== String(id));
+        }
+
+        saveCartArray(cart); // Lưu lại vào localStorage
+        renderSummary();     // Vẽ lại bảng tóm tắt
+    });
+
+    // Xử lý click nút Xóa (x)
+    $("#summaryBody").on("click", ".remove-btn", function (e) {
+        e.preventDefault();
+        const id = $(this).data("id");
+        if (confirm("Xóa món này khỏi giỏ hàng?")) {
+            let cart = getCartArray();
+            cart = cart.filter(i => String(i.id) !== String(id));
+            saveCartArray(cart);
+            renderSummary();
+        }
+    });
+
+    // === KẾT THÚC PHẦN THÊM MỚI ===
+
+
+    // (Giữ nguyên logic submit form của bạn)
     $("#bookingForm").off("submit").on("submit", function (e) {
         e.preventDefault();
-
         let cart = getCartArray();
 
         function submitWithCart(cartToSend) {
 
-            // Lấy auth state ngay trước khi submit
             const authRaw = getAuthState();
             const auth = safeParse(authRaw);
 
@@ -115,13 +162,11 @@ $(document).ready(function () {
                 alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
                 return;
             }
-
             if (!cartToSend || cartToSend.length === 0) {
                 alert("Giỏ hàng trống! Vui lòng chọn món trước khi đặt bàn.");
                 return;
             }
 
-            // VALIDATE INPUTS
             const bookingDate = $("#bookingDate").val();
             const timeSlot = $("#timeSlot").val();
             const guestCount = parseInt($("#guestCount").val() || "1", 10);
@@ -131,7 +176,6 @@ $(document).ready(function () {
                 return;
             }
 
-            // chuẩn bị payload
             const payload = {
                 username: auth.username,
                 customerName: auth.fullName,
@@ -150,13 +194,10 @@ $(document).ready(function () {
                 }))
             };
 
-            // Xóa nút và đổi trạng thái
             const $submitBtn = $("#bookingForm .btn-submit");
             $submitBtn.text("Đang xác nhận...");
             $submitBtn.prop("disabled", true);
 
-
-            // gửi AJAX
             $.ajax({
                 url: "/DatBan/Submit",
                 type: "POST",
@@ -184,18 +225,15 @@ $(document).ready(function () {
             });
         } // end submitWithCart
 
-        // --- Logic lấy Cart (Fallback) ---
         if (!cart || cart.length === 0) {
-            // ... (AJAX lấy cart từ server hoặc thông báo trống) ...
             alert("Giỏ hàng trống! Không thể đặt bàn.");
             return;
         } else {
-            // đã có cart local -> submit luôn
             submitWithCart(cart);
         }
     });
 
-    // modal đóng -> về menu
+    // (Giữ nguyên logic đóng modal của bạn)
     $("#closeModalBtn").on("click", function () {
         $("#bookingModal").fadeOut();
         window.location.href = "/Home/Menu";

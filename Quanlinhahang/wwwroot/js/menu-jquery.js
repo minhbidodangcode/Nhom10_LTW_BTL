@@ -71,7 +71,6 @@ $(function () {
             const itemCat = (($c.attr('data-cat') || '') + '').toLowerCase();
 
             const matchText = !q || hay.indexOf(q) !== -1;
-            // cat may be '', 'all', or a server id; treat '', 'all' as match-all
             const matchCat = !cat || cat === '' || cat === 'all' || itemCat === cat || itemCat === (cat.toLowerCase());
 
             if (matchText && matchCat) {
@@ -119,16 +118,18 @@ $(function () {
         const $items = $("#cartItems");
         $items.empty();
         let total = 0;
-        let count = 0;
+        let count = 0; // Vẫn tính tổng số lượng
+        let uniqueItemCount = 0; // SỐ MÓN KHÁC NHAU
 
         const values = Object.values(cart);
         if (values.length === 0) {
             $items.html('<div class="empty-cart" style="padding:12px;color:#666">Giỏ hàng trống.</div>');
         } else {
+            uniqueItemCount = values.length; // Lấy số món khác nhau
             values.forEach(item => {
                 const lineTotal = Number(item.qty || 0) * Number(item.price || 0);
                 total += lineTotal;
-                count += Number(item.qty || 0);
+                count += Number(item.qty || 0); // Tính tổng số lượng
 
                 // render row
                 $items.append(`
@@ -150,7 +151,7 @@ $(function () {
         }
 
         $("#cartTotal").text(formatVND(total));
-        $("#cart-count").text(count);
+        $("#cart-count").text(uniqueItemCount); // SỬA: Hiển thị số món khác nhau
 
         // persist
         writeCartObject(cart);
@@ -227,7 +228,6 @@ $(function () {
         window.location.href = "/Home/DatBan";
     });
 
-    // init display on load
     updateCartDisplay();
     /* -------------------- CART DRAWER TOGGLE -------------------- */
     $(function () {
