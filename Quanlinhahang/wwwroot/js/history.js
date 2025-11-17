@@ -179,6 +179,15 @@
         });
     });
 
+    $resultsContainer.on("click", ".action-btn.view", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const datBanId = $(this).data("id");
+
+        // Chuyển hướng sang trang chi tiết
+        window.location.href = `/Account/HistoryDetail/${datBanId}`;
+    });
+
     // --- 7. Tải dữ liệu ban đầu ---
     fetchHistory("tất cả");
 

@@ -1,0 +1,100 @@
+﻿/* =======================================
+   CSS CHO TRANG CHI TIẾT LỊCH SỬ
+   ======================================= */
+
+.detail-grid {
+    display: grid;
+    /* Chia 2 cột trên desktop */
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-box {
+    background: #2a2a2a;
+    border: 1px solid rgba(197, 157, 95, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+    .detail-box h3 {
+        color: #c59d5f;
+        border-bottom: 1px solid #444;
+        padding-bottom: 10px;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-family: "Playfair Display", serif;
+    }
+
+    .detail-box p {
+        margin: 12px 0;
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.95rem;
+    }
+
+        /* Nhãn (vd: "Họ và tên:") */
+        .detail-box p strong {
+            color: #999;
+            margin-right: 15px;
+            font-weight: 500;
+        }
+
+        /* Giá trị (vd: "Hà Bình Minh") */
+        .detail-box p span {
+            color: #fff;
+            font-weight: 600;
+            text-align: right;
+            flex-shrink: 0; /* Ngăn giá trị bị vỡ dòng */
+        }
+
+/* Bảng chi tiết món ăn */
+.order-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+    .order-details-table th,
+    .order-details-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .order-details-table th {
+        color: #999;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+    }
+
+    .order-details-table td.align-right {
+        text-align: right;
+    }
+
+/* Tổng tiền thanh toán */
+.final-total {
+    font-size: 1.2rem;
+    color: #c59d5f;
+    font-weight: 700;
+}
+
+/* Link quay lại */
+.back-link {
+    color: #c59d5f;
+    margin-top: 20px;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr; /* Chuyển thành 1 cột */
+    }
+}

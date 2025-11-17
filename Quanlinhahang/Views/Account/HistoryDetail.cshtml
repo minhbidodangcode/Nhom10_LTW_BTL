@@ -1,0 +1,94 @@
+﻿@model Quanlinhahang.Models.DatBan
+@{
+    ViewData["Title"] = $"Chi tiết Đơn hàng #{Model.DatBanId}";
+    var hoaDon = Model.HoaDons.FirstOrDefault();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/account-info.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/history.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/history-detail.css" asp-append-version="true" />
+}
+
+<div class="register-container">
+    <div id="historyDetailPage">
+
+        <h2 class="history-title">Chi tiết Đơn hàng: #@Model.DatBanId</h2>
+
+        <div class="history-content">
+            <div class="detail-grid">
+
+                <div class="detail-box">
+                    <h3>Thông tin Đặt bàn</h3>
+                    <p>
+                        <strong>Trạng thái:</strong>
+                        <span>
+                            @(hoaDon?.TrangThai?.TenTrangThai ?? Model.TrangThai)
+                        </span>
+                    </p>
+                    <p><strong>Ngày đến:</strong> <span>@Model.NgayDen.ToString("dd/MM/yyyy")</span></p>
+                    <p><strong>Khung giờ:</strong> <span>@Model.KhungGio.TenKhungGio</span></p>
+                    <p><strong>Số người:</strong> <span>@Model.SoNguoi</span></p>
+                    <p><strong>Bàn/Phòng:</strong> <span>@(Model.BanPhong?.TenBanPhong ?? "Chưa xếp bàn")</span></p>
+                    <p><strong>Ghi chú:</strong> <span>@(Model.YeuCauDacBiet ?? "Không có")</span></p>
+                </div>
+
+                <div class="detail-box">
+                    <h3>Thông tin Khách hàng</h3>
+                    <p><strong>Họ và tên:</strong> <span>@(Model.KhachHang?.HoTen ?? "N/A")</span></p>
+                    <p><strong>Số điện thoại:</strong> <span>@(Model.KhachHang?.SoDienThoai ?? "N/A")</span></p>
+                    <p><strong>Email:</strong> <span>@(Model.KhachHang?.Email ?? "N/A")</span></p>
+                </div>
+            </div>
+
+            <div class="detail-box" style="margin-top: 20px;">
+                <h3>Chi tiết Thanh toán</h3>
+
+                @if (hoaDon != null && hoaDon.ChiTietHoaDons.Any())
+                {
+                    <table class="order-details-table">
+                        <thead>
+                            <tr>
+                                <th>Tên món</th>
+                                <th class="align-right">Số lượng</th>
+                                <th class="align-right">Đơn giá</th>
+                                <th class="align-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in hoaDon.ChiTietHoaDons)
+                            {
+                                <tr>
+                                    <td>@(item.MonAn?.TenMon ?? "Món đã bị xóa")</td>
+                                    <td class="align-right">@item.SoLuong</td>
+                                    <td class="align-right">@item.DonGia.ToString("n0")đ</td>
+                                    <td class="align-right">@item.ThanhTien.ToString("n0")đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <hr style="border-color: #444; margin: 20px 0;">
+
+                    <p><strong>Tổng tiền món:</strong> <span>@hoaDon.TongTien.ToString("n0")đ</span></p>
+                    <p><strong>Giảm giá:</strong> <span>- @hoaDon.GiamGia.ToString("n0")đ</span></p>
+                    <p>
+                        <strong>Tổng thanh toán:</strong>
+                        <span class="final-total">@((hoaDon.TongTien - hoaDon.GiamGia).ToString("n0"))đ</span>
+                    </p>
+                    <p><strong>Hình thức:</strong> <span>@(hoaDon.HinhThucThanhToan ?? "N/A")</span></p>
+                }
+                else
+                {
+                    <p><strong>Tổng tiền (dự kiến):</strong> <span>@Model.TongTienDuKien?.ToString("n0")đ</span></p>
+                    <p>Chi tiết món ăn sẽ hiển thị sau khi hóa đơn được tạo.</p>
+                }
+            </div>
+
+            <a asp-action="History" asp-controller="Account" class="back-link">
+                ← Quay lại Lịch sử
+            </a>
+
+        </div>
+    </div>
+</div>

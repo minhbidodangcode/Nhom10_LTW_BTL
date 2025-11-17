@@ -275,27 +275,34 @@ public class AccountController : Controller
             return BadRequest(new { success = false, message = "Không tìm thấy người dùng." });
         }
 
-        // 1. Lấy Khách hàng ID
-        var khachHang = await _context.KhachHangs
-                                    .Include(k => k.TaiKhoan)
-                                    .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == username);
+        var taiKhoan = await _context.TaiKhoans
+                                    .FirstOrDefaultAsync(t => t.TenDangNhap == username);
 
-        if (khachHang == null)
+        if (taiKhoan == null)
         {
-            return NotFound(new { success = false, message = "Không tìm thấy thông tin khách hàng." });
+            return NotFound(new { success = false, message = "Tài khoản không hợp lệ." });
         }
 
-        // 2. Truy vấn cơ sở (Query)
         IQueryable<DatBan> query = _context.DatBans
                                         .Include(d => d.BanPhong)
+                                        .Include(d => d.KhachHang)
                                         .Include(d => d.HoaDons)
-                                            .ThenInclude(h => h.TrangThai)
-                                        .Where(d => d.KhachHangId == khachHang.KhachHangId);
+                                            .ThenInclude(h => h.TrangThai);
 
-        // 3. Lọc theo trạng thái (status)
+        if (taiKhoan.VaiTro == "Customer")
+        {
+            var khachHang = await _context.KhachHangs
+                                        .FirstOrDefaultAsync(k => k.TaiKhoanId == taiKhoan.TaiKhoanId);
+
+            if (khachHang == null)
+            {
+                return NotFound(new { success = false, message = "Không tìm thấy thông tin khách hàng liên kết." });
+            }
+            query = query.Where(d => d.KhachHangId == khachHang.KhachHangId);
+        }
         int? trangThaiId = null;
         bool filterByDatBanStatus = false;
-        bool filterByDatBanHuy = false; // Cờ mới cho trạng thái Hủy
+        bool filterByDatBanHuy = false;
 
         switch (status.ToLower())
         {
@@ -312,7 +319,6 @@ public class AccountController : Controller
                 trangThaiId = 4;
                 break;
             case "đã hủy":
-                // SỬA LỖI: Chúng ta cần kiểm tra cả DatBan VÀ HoaDon
                 filterByDatBanHuy = true;
                 trangThaiId = 5;
                 break;
@@ -320,11 +326,8 @@ public class AccountController : Controller
             default:
                 break;
         }
-
-        // Áp dụng bộ lọc (ĐÃ SỬA LỖI)
         if (filterByDatBanHuy)
         {
-            // Lấy đơn HỦY từ Bảng DatBan (hủy sớm) HOẶC từ Bảng HoaDon (hủy muộn)
             query = query.Where(d =>
                 d.TrangThai == "Đã hủy" ||
                 d.HoaDons.Any(h => h.TrangThaiId == trangThaiId.Value)
@@ -332,22 +335,19 @@ public class AccountController : Controller
         }
         else if (trangThaiId.HasValue)
         {
-            // Lọc các trạng thái Hóa đơn khác
             query = query.Where(d => d.HoaDons.Any(h => h.TrangThaiId == trangThaiId.Value));
         }
         else if (filterByDatBanStatus)
         {
-            // Lọc trạng thái "Chờ xác nhận"
             query = query.Where(d => d.TrangThai == "Chờ xác nhận");
         }
-
-        // 4. Chọn dữ liệu trả về (Giữ nguyên)
         var historyData = await query
             .OrderByDescending(d => d.NgayDen)
             .Select(d => new
             {
                 datBanId = d.DatBanId,
                 ngayDen = d.NgayDen.ToString("dd/MM/yyyy"),
+                tenKhachHang = d.KhachHang.HoTen,
                 tenBanPhong = d.BanPhong != null ? d.BanPhong.TenBanPhong : "N/A",
                 soNguoi = d.SoNguoi,
                 trangThaiDatBan = d.TrangThai,
@@ -475,6 +475,27 @@ public class AccountController : Controller
         });
     }
 
+    [HttpGet("HistoryDetail/{datBanId}")]
+    public async Task<IActionResult> HistoryDetail(int datBanId)
+    {
+        var datBan = await _context.DatBans
+            .Include(d => d.KhungGio)
+            .Include(d => d.BanPhong)
+            .Include(d => d.KhachHang)
+            .Include(d => d.HoaDons)
+                .ThenInclude(h => h.TrangThai)
+            .Include(d => d.HoaDons)
+                .ThenInclude(h => h.ChiTietHoaDons)
+                    .ThenInclude(ct => ct.MonAn) 
+            .FirstOrDefaultAsync(d => d.DatBanId == datBanId);
+
+        if (datBan == null)
+        {
+            return NotFound("Không tìm thấy đơn đặt bàn.");
+        }
+
+        return View(datBan);
+    }
 
     // ==========================================================
     // HÀM HỖ TRỢ (PRIVATE)

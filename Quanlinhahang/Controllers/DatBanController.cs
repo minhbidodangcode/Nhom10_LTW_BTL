@@ -39,11 +39,12 @@ namespace Quanlinhahang.Controllers
         [HttpPost("Submit")]
         public async Task<IActionResult> Submit([FromBody] BookingRequest req)
         {
-            if(string.IsNullOrWhiteSpace(req.username))
+            if (string.IsNullOrWhiteSpace(req.username))
                 return Unauthorized(new { success = false, message = "Bạn cần đăng nhập để đặt bàn." });
+
             var khachHang = await _context.KhachHangs
-                                .Include(k => k.TaiKhoan)
-                                .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == req.username);
+                                        .Include(k => k.TaiKhoan)
+                                        .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == req.username);
 
             if (khachHang == null)
                 return NotFound(new { success = false, message = "Không tìm thấy thông tin khách hàng liên kết với tài khoản này." });
@@ -84,7 +85,42 @@ namespace Quanlinhahang.Controllers
 
                     _context.DatBans.Add(datBan);
                     await _context.SaveChangesAsync();
+                    var hoaDon = new HoaDon
+                    {
+                        DatBanId = datBan.DatBanId,
+                        TaiKhoanId = khachHang.TaiKhoanId,
+                        NgayLap = DateTime.Now,
+                        TongTien = tongTienDuKien,
+                        GiamGia = 0,
+                        DiemCong = 0,
+                        DiemSuDung = 0,
+                        HinhThucThanhToan = null,
+                        TrangThaiId = 1,
+                        Vat = 0.10m, 
+                        LoaiDichVu = "Tại chỗ"
+                    };
+                    _context.HoaDons.Add(hoaDon);
+                    await _context.SaveChangesAsync(); // Lưu để lấy HoaDonID
 
+                    // BƯỚC C: TẠO CHITIETHOADON (Các món ăn)
+                    foreach (var item in items)
+                    {
+                        if (item.id.HasValue && item.id.Value > 0)
+                        {
+                            var chiTiet = new ChiTietHoaDon
+                            {
+                                HoaDonId = hoaDon.HoaDonId,
+                                MonAnId = item.id.Value,
+                                SoLuong = item.qty ?? 1,
+                                DonGia = item.price ?? 0, // Lưu giá tại thời điểm đặt
+                                ThanhTien = (item.price ?? 0) * (item.qty ?? 1)
+                            };
+                            _context.ChiTietHoaDons.Add(chiTiet);
+                        }
+                    }
+                    await _context.SaveChangesAsync(); // Lưu tất cả các món ăn
+
+                    // BƯỚC D: Hoàn tất
                     await transaction.CommitAsync();
 
                     return Json(new
@@ -97,10 +133,18 @@ namespace Quanlinhahang.Controllers
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
+
+                    // Trả về lỗi chi tiết (InnerException) để dễ gỡ lỗi
+                    string errorMessage = ex.Message;
+                    if (ex.InnerException != null)
+                    {
+                        errorMessage += " | Inner Exception: " + ex.InnerException.Message;
+                    }
+
                     return StatusCode(500, new
                     {
                         success = false,
-                        message = "Lỗi khi lưu đơn đặt bàn: " + ex.Message
+                        message = "Lỗi khi lưu đơn đặt bàn: " + errorMessage
                     });
                 }
             }
