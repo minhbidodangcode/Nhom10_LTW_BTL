@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quanlinhahang.Models; // Đảm bảo namespace này chứa Models VÀ ViewModels
+using Quanlinhahang.Models.ViewModels;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -54,9 +55,9 @@ public class AccountController : Controller
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
             return BadRequest(new { success = false, message = string.Join(" | ", errors) });
         }
-        if (await _context.TaiKhoans.AnyAsync(t => t.TenDangNhap == model.Username))
+        if (await _context.TaiKhoans.AnyAsync(t => t.TenDangNhap == model.Phone))
         {
-            return Conflict(new { success = false, message = "Tên đăng nhập đã tồn tại." });
+            return Conflict(new { success = false, message = "Số điện thoại này đã được đăng ký." });
         }
         if (await _context.KhachHangs.AnyAsync(k => k.SoDienThoai == model.Phone))
         {
@@ -71,7 +72,7 @@ public class AccountController : Controller
             {
                 var taiKhoan = new TaiKhoan
                 {
-                    TenDangNhap = model.Username,
+                    TenDangNhap = model.Phone,
                     MatKhauHash = hashedPassword,
                     Email = model.Email,
                     VaiTro = "Customer",
@@ -118,9 +119,24 @@ public class AccountController : Controller
             return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
 
-        var taiKhoan = await _context.TaiKhoans
-            .FirstOrDefaultAsync(t => t.TenDangNhap == model.Username);
+        TaiKhoan? taiKhoan = null;
+        taiKhoan = await _context.TaiKhoans
+            .FirstOrDefaultAsync(t =>
+                t.TenDangNhap == model.Username ||
+                t.Email == model.Username
+            );
 
+        if (taiKhoan == null)
+        {
+            var khachHang = await _context.KhachHangs
+                .Include(k => k.TaiKhoan) 
+                .FirstOrDefaultAsync(k => k.SoDienThoai == model.Username);
+
+            if (khachHang != null && khachHang.TaiKhoan != null)
+            {
+                taiKhoan = khachHang.TaiKhoan;
+            }
+        }
         if (taiKhoan == null)
         {
             return Unauthorized(new { success = false, message = "Sai tài khoản hoặc mật khẩu." });
@@ -131,13 +147,15 @@ public class AccountController : Controller
         {
             return Unauthorized(new { success = false, message = "Sai tài khoản hoặc mật khẩu." });
         }
-
         string fullName = taiKhoan.TenDangNhap;
 
         if (taiKhoan.VaiTro == "Customer")
         {
-            var khachHang = await _context.KhachHangs
-                .FirstOrDefaultAsync(k => k.TaiKhoanId == taiKhoan.TaiKhoanId);
+            var tk = await _context.TaiKhoans
+                .Include(t => t.KhachHangs)
+                .FirstOrDefaultAsync(t => t.TaiKhoanId == taiKhoan.TaiKhoanId);
+
+            var khachHang = tk?.KhachHangs.FirstOrDefault();
             if (khachHang != null) fullName = khachHang.HoTen;
         }
         else if (taiKhoan.VaiTro == "Admin" || taiKhoan.VaiTro == "Staff")
@@ -147,7 +165,13 @@ public class AccountController : Controller
             if (nhanVien != null) fullName = nhanVien.HoTen;
         }
 
-        var userResponse = new { username = taiKhoan.TenDangNhap, fullName = fullName, role = taiKhoan.VaiTro };
+        var userResponse = new
+        {
+            username = taiKhoan.TenDangNhap,
+            fullName = fullName,
+            role = taiKhoan.VaiTro
+        };
+
         return Json(new { success = true, user = userResponse });
     }
 
@@ -241,21 +265,48 @@ public class AccountController : Controller
             return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
         var khachHang = await _context.KhachHangs
-                                .Include(k => k.TaiKhoan)
-                                .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == model.Username);
-        if (khachHang == null)
+                                    .Include(k => k.TaiKhoan)
+                                    .FirstOrDefaultAsync(k => k.TaiKhoan != null && k.TaiKhoan.TenDangNhap == model.Username);
+
+        if (khachHang == null || khachHang.TaiKhoan == null)
         {
             return NotFound(new { success = false, message = "Không tìm thấy người dùng để cập nhật." });
+        }
+
+        var taiKhoan = khachHang.TaiKhoan;
+        if (taiKhoan.TenDangNhap != model.Phone)
+        {
+            bool phoneExists = await _context.TaiKhoans.AnyAsync(t => t.TenDangNhap == model.Phone);
+            if (phoneExists)
+            {
+                return Conflict(new { success = false, message = "Số điện thoại mới đã tồn tại. Vui lòng chọn SĐT khác." });
+            }
+            taiKhoan.TenDangNhap = model.Phone;
         }
         khachHang.HoTen = model.FullName;
         khachHang.Email = model.Email;
         khachHang.SoDienThoai = model.Phone;
         khachHang.DiaChi = model.Address;
+        if (taiKhoan.Email != model.Email)
+        {
+            taiKhoan.Email = model.Email;
+        }
+
         try
         {
-            _context.KhachHangs.Update(khachHang);
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Cập nhật thông tin thành công!", newFullName = khachHang.HoTen });
+
+            return Json(new
+            {
+                success = true,
+                message = "Cập nhật thông tin thành công!",
+                newFullName = khachHang.HoTen,
+                newUsername = taiKhoan.TenDangNhap
+            });
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new { success = false, message = "Lỗi CSDL: " + ex.InnerException?.Message ?? ex.Message });
         }
         catch (Exception ex)
         {

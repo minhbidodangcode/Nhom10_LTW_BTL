@@ -483,3 +483,11 @@ body {
 .hidden {
     display: none !important;
 }
+
+.history-item-info {
+    margin: 20px;
+}
+
+.voucher-code-section{
+    margin-right: 10px;
+}

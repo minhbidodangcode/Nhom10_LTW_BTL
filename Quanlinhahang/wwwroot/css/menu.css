@@ -363,6 +363,8 @@ body {
     }
 
 #cartDrawer {
+    max-height: 80vh;
+    overflow-y: auto;
     display: none;
     position: fixed;
     right: 24px;

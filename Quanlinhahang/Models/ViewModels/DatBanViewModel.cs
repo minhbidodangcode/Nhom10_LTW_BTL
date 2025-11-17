@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Quanlinhahang.Models
+namespace Quanlinhahang.Models.ViewModels
 {
     public class DatBanViewModel
     {
@@ -13,6 +13,7 @@ namespace Quanlinhahang.Models
         public string? TableType { get; set; }
         public string? Note { get; set; }
         public List<CartItem>? Items { get; set; }
+        public List<BanPhong> DanhSachBan { get; set; } = new List<BanPhong>();
     }
 
 }

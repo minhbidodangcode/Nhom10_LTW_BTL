@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Quanlinhahang.Models
+namespace Quanlinhahang.Models.ViewModels
 {
     public class MenuViewModel
     {

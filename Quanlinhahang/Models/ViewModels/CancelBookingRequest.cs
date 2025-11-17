@@ -1,4 +1,4 @@
-﻿namespace Quanlinhahang.Models
+﻿namespace Quanlinhahang.Models.ViewModels
 {
     public class CancelBookingRequest
     {

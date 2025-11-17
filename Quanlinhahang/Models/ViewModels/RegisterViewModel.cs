@@ -1,7 +1,7 @@
 ﻿// Models/ViewModels/RegisterViewModel.cs
 using System.ComponentModel.DataAnnotations;
 
-namespace Quanlinhahang.Models
+namespace Quanlinhahang.Models.ViewModels
 {
     public class RegisterViewModel
     {

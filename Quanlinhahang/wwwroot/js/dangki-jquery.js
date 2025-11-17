@@ -27,7 +27,7 @@ $(document).ready(function () {
             FullName: $("#regFullName").val().trim(),
             Email: $("#regEmail").val().trim(),
             Phone: $("#regPhone").val().trim(),
-            Username: $("#regUsername").val().trim(),
+            Username: $("#regPhone").val().trim(),
             Password: $("#regPassword").val(),
             ConfirmPassword: $("#regConfirmPassword").val(),
             Address: $("#regAddress").val().trim()

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Quanlinhahang.Models;
 using System.Diagnostics;
+using Quanlinhahang.Models.ViewModels;
 
 namespace Quanlinhahang.Controllers
 {
@@ -64,13 +65,16 @@ namespace Quanlinhahang.Controllers
             return Ok();
         }
 
-        public IActionResult DatBan()
+        public async Task<IActionResult> DatBan()
         {
-            var cartJson = HttpContext.Session.GetString("CartData");
-            var cart = string.IsNullOrEmpty(cartJson)
-                ? new Dictionary<string, CartItem>()
-                : JsonConvert.DeserializeObject<Dictionary<string, CartItem>>(cartJson);
-            return View(cart);
+            var viewModel = new DatBanViewModel
+            {
+                DanhSachBan = await _db.BanPhongs
+                                          .Include(b => b.LoaiBanPhong)
+                                          .ToListAsync()
+            };
+
+            return View(viewModel);
         }
 
         public ActionResult Index()

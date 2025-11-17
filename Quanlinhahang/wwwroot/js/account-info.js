@@ -101,11 +101,13 @@
                         phone: updatedData.phone,
                         address: updatedData.address
                     };
-
                     auth.fullName = response.newFullName;
 
+                    if (response.newUsername) {
+                        auth.username = response.newUsername;
+                    }
                     saveAuthState(auth, localStorage.getItem("authUser") != null);
-                    applyAuthUI(); 
+                    applyAuthUI();
 
                     setEditMode(false);
                 } else {

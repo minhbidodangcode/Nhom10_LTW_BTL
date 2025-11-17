@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Quanlinhahang.Models
+namespace Quanlinhahang.Models.ViewModels
 {
     public class LoginViewModel
     {
