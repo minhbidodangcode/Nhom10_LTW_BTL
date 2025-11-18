@@ -21,7 +21,7 @@ $(document).ready(function () {
     const $addMonAnModal = $("#addMonAnModal");
     const $openAddMonAnModal = $("#openAddMonAnModal"); // Nút "+"
 
-    const datBanId = parseInt(window.location.pathname.split('/').pop());
+    const datBanId = typeof serverDatBanId !== 'undefined' ? serverDatBanId : 0;
 
     // 'originalItemsData' được nhúng từ View (đã sửa lỗi C#)
     let currentItems = JSON.parse(JSON.stringify(originalItemsData));
@@ -129,17 +129,36 @@ $(document).ready(function () {
     $("#openTableMapBtn").on("click", function (e) {
         e.preventDefault();
         if ($fieldset.is(':disabled')) return;
+
+        // Highlight bàn hiện tại đang chọn (nếu có)
+        const currentId = $hiddenInput.val();
+        $(".table-card.selected").removeClass("selected");
+        if (currentId) {
+            $(`.table-card[data-id='${currentId}']`).addClass("selected");
+        }
+
         $tableMapModal.addClass("active");
     });
+
+    // 2. Đóng Modal
     $("#closeTableMapModal").on("click", function () {
         $tableMapModal.removeClass("active");
     });
-    $(".table-map-container").on("click", ".table-card", function () {
+
+    // 3. Xử lý Click Chọn Bàn (Sử dụng Delegation trên ID Modal)
+    $("#tableMapModal").on("click", ".table-card", function (e) {
+        e.preventDefault();
         const $card = $(this);
-        if ($card.data("available") !== true) {
+
+        // Kiểm tra trạng thái
+        const isAvailable = $card.data("available");
+        // Chuyển về string để so sánh an toàn
+        if (String(isAvailable).toLowerCase() !== "true") {
             alert("Bàn này đang bận, vui lòng chọn bàn Trống.");
             return;
         }
+
+        // Xử lý chọn/bỏ chọn
         if ($card.hasClass("selected")) {
             $card.removeClass("selected");
             $hiddenInput.val("");
@@ -147,9 +166,14 @@ $(document).ready(function () {
         } else {
             $(".table-card.selected").removeClass("selected");
             $card.addClass("selected");
+
             $hiddenInput.val($card.data("id"));
             $displayArea.text(`Đã chọn: ${$card.data("name")}`);
-            $tableMapModal.removeClass("active");
+
+            // Tự động đóng sau 200ms
+            setTimeout(() => {
+                $tableMapModal.removeClass("active");
+            }, 200);
         }
     });
 

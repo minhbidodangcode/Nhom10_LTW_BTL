@@ -1,6 +1,8 @@
 ﻿/* ================================
-   CSS CHO MODAL CHỌN BÀN
+   CSS CHO SƠ ĐỒ CHỌN BÀN (RỘNG HƠN & CỐ ĐỊNH)
    ================================ */
+
+/* --- Nút mở Modal & Hiển thị (Giữ nguyên) --- */
 .btn-select-table {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -26,155 +28,234 @@
     background-color: #0b0b0b;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: var(--primary-color, #ffd700); /* Màu vàng */
+    color: var(--primary-color, #ffd700);
     font-weight: 600;
     margin-bottom: 8px;
 }
 
+/* --- Modal Layout (RỘNG HƠN) --- */
 #tableMapModal .table-modal-content {
-    max-width: 900px;
-    width: 90%;
-    background: #1f1f1f;
-    border-color: var(--border-color);
-}
-
-#tableMapModal .modal-header h2 {
-    color: var(--text-light);
-}
-
-#tableMapModal .modal-header p {
-    color: var(--text-gray);
-}
-
-#tableMapModal .close-btn {
+    max-width: 1100px;
+    width: 95%;
+    background: #1a1a1a;
+    border: 1px solid #333;
     color: #fff;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+
 }
 
-.table-map-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-    background-color: var(--darker-bg);
+#tableMapModal .modal-header {
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 0; /* Xóa margin bottom để dính liền với floor-plan */
+    flex-shrink: 0; /* Header không bị co lại */
+}
+
+/* --- KHUNG SƠ ĐỒ (FLOOR PLAN) --- */
+.restaurant-floor-plan {
+    position: relative;
+    background-color: #2a2a2a;
+    border: 2px solid #444;
     border-radius: 8px;
-    max-height: 60vh;
-    overflow-y: auto;
+    /* Xóa padding cũ, dùng flex column */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Ẩn thanh cuộn ngoài */
+    flex-grow: 1; /* Chiếm hết chiều cao còn lại */
+    min-height: 0; /* Quan trọng cho Firefox */
 }
 
-.table-card {
+/* 1. CỬA VÀO (ĐẢO LÊN TRÊN & CỐ ĐỊNH) */
+.area-entrance {
+    flex-shrink: 0; /* Không bị co */
+    height: 60px;
+    background: #333;
+    border-bottom: 2px solid #444;
     display: flex;
     align-items: center;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background-color: var(--dark-bg);
-    transition: all 0.3s ease;
-    cursor: pointer;
+    justify-content: center;
+    color: #c59d5f;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 10;
 }
 
-.table-card-icon {
-    width: 50px;
+    .area-entrance::before {
+        content: "🚪 Cửa vào chính";
+        font-size: 1.1rem;
+    }
+
+/* 2. KHU VỰC BẾP (ĐẢO XUỐNG DƯỚI & CỐ ĐỊNH) */
+.area-kitchen {
+    flex-shrink: 0; /* Không bị co */
     height: 50px;
-    margin-right: 15px;
-    flex-shrink: 0;
+    background: repeating-linear-gradient( 45deg, #333, #333 10px, #444 10px, #444 20px );
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-top: 3px solid #c59d5f; /* Viền ngăn cách bếp */
+    z-index: 10;
 }
 
-    .table-card-icon svg {
-        width: 100%;
-        height: 100%;
-    }
+/* 3. KHU VỰC CỬA SỔ KÍNH (Bên phải - Tuyệt đối) */
+.area-window {
+    position: absolute;
+    top: 60px; /* Dưới Cửa vào */
+    bottom: 50px; /* Trên Bếp */
+    right: 0;
+    width: 40px;
+    background-color: rgba(135, 206, 235, 0.1);
+    border-left: 2px solid #555;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #87ceeb;
+    font-weight: 600;
+    letter-spacing: 2px;
+    z-index: 5;
+    pointer-events: none; /* Không chặn click bàn */
+}
 
-.table-card-details {
+/* --- GRID CHỨA BÀN (CÓ THANH CUỘN RIÊNG) --- */
+.table-map-grid {
+    margin-right: 40px;
     flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 60px 20px 20px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
 }
 
-.table-card-number {
-    font-size: 0.9rem;
-    color: var(--text-gray);
+/* --- TABLE CARD --- */
+.table-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #333;
+    border: 2px solid #555;
+    border-radius: 12px;
+    padding: 15px 10px; /* Tăng padding dọc */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 120px; /* Chiều cao tối thiểu */
 }
 
-    .table-card-number strong {
-        font-size: 1.5rem;
-        color: var(--text-light);
-        margin-left: 5px;
-    }
+.table-card-icon svg {
+    width: 40px;
+    height: 40px;
+    fill: #888;
+    margin-bottom: 8px;
+}
 
 .table-card-name {
-    font-size: 0.9rem;
-    color: var(--text-gray);
-    margin-bottom: 5px;
-}
-
-.table-card-status {
-    font-size: 0.9rem;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    display: inline-block;
+    font-size: 1rem; /* Chữ to hơn */
+    color: #fff;
+    text-align: center;
+    white-space: nowrap; /* Ngăn ngắt dòng nếu có thể */
 }
 
+.table-card-capacity {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+/* Trạng thái: Trống */
 .table-card.trống {
-    background-color: #f0f0f0;
-    border-color: #ccc;
-    color: #333;
+    background-color: #444;
+    border-color: #666;
 }
 
-    .table-card.trống .table-card-icon svg {
-        fill: #555;
+    .table-card.trống:hover {
+        border-color: #c59d5f;
+        background-color: #555;
     }
 
-    .table-card.trống .table-card-number strong {
+    .table-card.trống .table-card-icon svg {
+        fill: #c59d5f;
+    }
+
+/* Trạng thái: Bận */
+.table-card.dang-hoat-dong, .table-card.da-dat {
+    background-color: #2a1a1a;
+    border-color: #552222;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+    .table-card.dang-hoat-dong .table-card-icon svg {
+        fill: #a33;
+    }
+
+    .table-card.dang-hoat-dong .table-card-name {
+        color: #a33;
+    }
+
+/* Trạng thái: Đang chọn */
+.table-card.selected {
+    background-color: #c59d5f;
+    border-color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+    .table-card.selected .table-card-icon svg {
+        fill: #000;
+    }
+
+    .table-card.selected .table-card-name,
+    .table-card.selected .table-card-capacity {
         color: #000;
     }
 
-    .table-card.trống .table-card-name,
-    .table-card.trống .table-card-number {
-        color: #555;
-    }
-
-    .table-card.trống .table-card-status {
-        background-color: var(--success-green, #22c55e);
-        color: #fff;
-    }
-
-    .table-card.trống:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    }
-
-.table-card.dang-hoat-dong,
-.table-card.da-dat {
-    background-color: #a83d3d;
-    border-color: #c94a4a;
-    color: #fff;
-    cursor: not-allowed;
-    opacity: 0.8;
+/* --- CHÚ GIẢI --- */
+.map-legend {
+    flex-shrink: 0; /* Không bị co */
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px;
+    border-top: 1px solid #333;
+    background: #1a1a1a;
 }
 
-    .table-card.dang-hoat-dong .table-card-icon svg,
-    .table-card.da-dat .table-card-icon svg {
-        fill: #fff;
-    }
-
-    .table-card.dang-hoat-dong .table-card-number strong,
-    .table-card.da-dat .table-card-number strong {
-        color: #fff;
-    }
-
-    .table-card.dang-hoat-dong .table-card-name,
-    .table-card.da-dat .table-card-name {
-        color: #f0f0f0;
-    }
-
-    .table-card.dang-hoat-dong .table-card-status,
-    .table-card.da-dat .table-card-status {
-        background-color: #fff;
-        color: #a83d3d;
-    }
-
-.table-card.selected {
-    border-color: var(--primary-color);
-    background-color: #fff;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    transform: scale(1.03);
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #ccc;
 }
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+    .legend-color.available {
+        background: #444;
+        border: 1px solid #666;
+    }
+
+    .legend-color.occupied {
+        background: #2a1a1a;
+        border: 1px solid #552222;
+    }
+
+    .legend-color.selected {
+        background: #c59d5f;
+    }

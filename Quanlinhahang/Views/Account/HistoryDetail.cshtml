@@ -134,34 +134,49 @@
 <div class="modal" id="tableMapModal">
     <div class="modal-content table-modal-content">
         <button class="close-btn" id="closeTableMapModal">&times;</button>
+
         <div class="modal-header">
-            <h2>Chọn bàn</h2>
-            <p>Vui lòng chọn một bàn còn trống.</p>
+            <h2>Sơ đồ Nhà hàng</h2>
+            <p>Chọn vị trí bàn phù hợp với sở thích của bạn.</p>
         </div>
 
-        <div class="table-map-container">
-            @foreach (var ban in danhSachBan)
-            {
-                string trangThaiClass = ban.TrangThai.ToLower().Replace("đ", "d").Replace(" ", "-");
-                bool isAvailable = trangThaiClass == "trống";
+        <div class="restaurant-floor-plan">
 
-                <div class="table-card @trangThaiClass"
-                     data-id="@ban.BanPhongId"
-                     data-name="@ban.TenBanPhong"
-                     data-available="@isAvailable.ToString().ToLower()">
+            <div class="area-entrance"></div>
 
-                    <div class="table-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm5 0v3h4V4h-4z" />
-                        </svg>
-                    </div>
-                    <div class="table-card-details">
-                        <div class="table-card-number">Bàn số <strong>@ban.BanPhongId</strong></div>
+            <div class="area-window">🪟 Cửa sổ kính (View đường phố)</div>
+
+            <div class="table-map-grid">
+                @foreach (var ban in (ViewBag.DanhSachBan as List<BanPhong> ?? new List<BanPhong>()))
+                {
+                    string trangThaiClass = ban.TrangThai.ToLower().Replace("đ", "d").Replace(" ", "-");
+                    bool isAvailable = trangThaiClass == "trống";
+
+                    <div class="table-card @trangThaiClass"
+                         data-id="@ban.BanPhongId"
+                         data-name="@ban.TenBanPhong"
+                         data-available="@isAvailable.ToString().ToLower()"
+                         title="@ban.TenBanPhong (@ban.SucChua ghế)">
+
+                        <div class="table-card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M4 18v3h3v-3h10v3h3v-6H4v3zm16-8h-2V7c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v3H4v6h16v-6z" />
+                            </svg>
+                        </div>
                         <div class="table-card-name">@ban.TenBanPhong</div>
-                        <div class="table-card-status">@ban.TrangThai</div>
+                        <div class="table-card-capacity">(@ban.SucChua người)</div>
                     </div>
-                </div>
-            }
+                }
+            </div>
+
+            <div class="area-kitchen">👨‍🍳 Khu vực Bếp & Quầy Bar</div>
+
+        </div>
+
+        <div class="map-legend">
+            <div class="legend-item"><div class="legend-color available"></div><span>Trống</span></div>
+            <div class="legend-item"><div class="legend-color occupied"></div><span>Đã đặt/Bận</span></div>
+            <div class="legend-item"><div class="legend-color selected"></div><span>Đang chọn</span></div>
         </div>
     </div>
 </div>
@@ -216,6 +231,8 @@
 @section Scripts {
     <script>
         var originalItemsData = @Html.Raw(Json.Serialize(itemsToShow));
+        var serverDatBanId = @Model.DatBanId; 
     </script>
+
     <script src="~/js/history-detail.js" asp-append-version="true"></script>
 }

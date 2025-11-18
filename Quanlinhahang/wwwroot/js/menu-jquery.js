@@ -1,6 +1,6 @@
 $(function () {
     /* -------------------- HELPERS -------------------- */
-    const LS_KEY = "cart"; // key localStorage
+    const LS_KEY = "cart"; 
     const $search = $('#search-box');
     const $filter = $('#filter-cat');
 
@@ -17,7 +17,6 @@ $(function () {
         }
     }
 
-    // Trả về object map { id: {id,name,price,qty}, ... }
     function readCartObject() {
         const raw = localStorage.getItem(LS_KEY);
         const parsed = safeParse(raw);
@@ -33,7 +32,6 @@ $(function () {
         }
     }
 
-    // lấy dạng array (dùng trên trang đặt bàn)
     function getCartArray() {
         const obj = readCartObject();
         return Object.values(obj);
@@ -112,14 +110,14 @@ $(function () {
         const $items = $("#cartItems");
         $items.empty();
         let total = 0;
-        let count = 0; // Tổng số lượng
-        let uniqueItemCount = 0; // Số món khác nhau
+        let count = 0;
+        let uniqueItemCount = 0;
 
         const values = Object.values(cart);
         if (values.length === 0) {
             $items.html('<div class="empty-cart" style="padding:12px;color:#666">Giỏ hàng trống.</div>');
         } else {
-            uniqueItemCount = values.length; // Lấy số món
+            uniqueItemCount = values.length;
             values.forEach(item => {
                 const lineTotal = Number(item.qty || 0) * Number(item.price || 0);
                 total += lineTotal;
@@ -145,11 +143,8 @@ $(function () {
 
         $("#cartTotal").text(formatVND(total));
 
-        // === SỬA LỖI: Cập nhật CẢ HAI ID ===
-        $("#cart-count").text(uniqueItemCount); // (Cho header của Menu.cshtml)
-        $("#cartCount").text(uniqueItemCount);  // (Cho _Navbar.cshtml chung)
-        // =================================
-
+        $("#cart-count").text(uniqueItemCount); 
+        $("#cartCount").text(uniqueItemCount); 
         writeCartObject(cart);
     }
 

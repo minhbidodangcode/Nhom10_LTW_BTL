@@ -1,7 +1,13 @@
 ﻿@model Quanlinhahang.Models.ViewModels.DatBanViewModel
+@using Quanlinhahang.Models
+@using System.Collections.Generic
+
 @{
-    ViewData["Title"] = "Đặt bàn";
+    ViewBag.Title = "Đặt bàn";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Lấy dữ liệu từ Model (do Controller gửi sang)
+    var danhSachBan = Model.DanhSachBan ?? new List<BanPhong>();
 }
 
 <div class="main-content">
@@ -17,13 +23,11 @@
                 <div>Thành tiền</div>
                 <div>Xóa</div>
             </div>
-
             <div class="summary-body" id="summaryBody">
                 <div class="empty-cart">
                     Giỏ hàng đang trống. Vui lòng chọn món ở trang <a asp-action="Menu" asp-controller="Home">Thực đơn</a>.
                 </div>
             </div>
-
             <div class="summary-total">
                 <span>Tổng cộng:</span>
                 <span class="total-amount" id="summaryTotal">0₫</span>
@@ -31,20 +35,16 @@
         </section>
 
         <section class="booking-form">
-
             <div class="user-greeting-box" id="userGreetingBox">
                 <p>Xin chào, <strong id="loggedInName">Quý Khách</strong>. Thông tin liên hệ sẽ được lấy từ tài khoản của bạn.</p>
             </div>
 
             <form id="bookingForm">
                 <div class="form-row">
-                    
                     <div class="form-group">
                         <label for="bookingDate">Ngày đặt</label>
-                        <input type="date" id="bookingDate" name="bookingDate"
-                               class="form-input" required />
+                        <input type="date" id="bookingDate" name="bookingDate" class="form-input" required />
                     </div>
-
                     <div class="form-group">
                         <label for="timeSlot">Khung giờ</label>
                         <select id="timeSlot" name="timeSlot" class="form-select" required>
@@ -53,25 +53,20 @@
                             <option value="Toi">Tối (18:00 - 21:30)</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="guestCount">Số lượng khách</label>
-                        <input type="number" id="guestCount" name="guestCount"
-                               class="form-input" min="1" max="50" value="2" required />
+                        <input type="number" id="guestCount" name="guestCount" class="form-input" min="1" max="50" value="2" required />
                     </div>
 
                     <div class="form-group">
                         <label for="tableSelection">Chọn bàn (Tùy chọn)</label>
-
                         <button type="button" class="btn-select-table" id="openTableMapBtn">Chọn bàn từ sơ đồ</button>
-
                         <input type="hidden" id="selectedBanPhongId" name="BanPhongId" />
                     </div>
 
                     <div class="form-group full-width">
                         <label for="note">Ghi chú thêm</label>
-                        <textarea id="note" name="note" class="form-input"
-                                  placeholder="Ví dụ: cần ghép bàn, có trẻ nhỏ, dị ứng hải sản..."></textarea>
+                        <textarea id="note" name="note" class="form-input" placeholder="Ví dụ: cần ghép bàn, có trẻ nhỏ, dị ứng hải sản..."></textarea>
                     </div>
                 </div>
 
@@ -93,10 +88,7 @@
             </svg>
         </div>
         <h2>Đặt bàn thành công!</h2>
-        <p>
-            Cảm ơn bạn đã đặt bàn tại Nhà hàng BTL.<br />
-            Chúng tôi sẽ liên hệ xác nhận lại trong thời gian sớm nhất.
-        </p>
+        <p>Cảm ơn bạn đã đặt bàn tại Nhà hàng BTL.<br />Chúng tôi sẽ liên hệ xác nhận lại trong thời gian sớm nhất.</p>
         <button class="btn-close" id="closeModalBtn">Đóng</button>
     </div>
 </div>
@@ -105,37 +97,47 @@
     <div class="modal-content table-modal-content">
         <button class="close-btn" id="closeTableMapModal">&times;</button>
         <div class="modal-header">
-            <h2>Chọn bàn</h2>
-            <p>Vui lòng chọn một bàn còn trống.</p>
+            <h2>Sơ đồ Nhà hàng</h2>
+            <p>Chọn vị trí bàn phù hợp với sở thích của bạn.</p>
         </div>
-        
-        <div class="table-map-container">
-            @foreach (var ban in Model.DanhSachBan)
-            {
-                string trangThaiClass = ban.TrangThai.ToLower().Replace("đ", "d").Replace(" ", "-");
-                bool isAvailable = trangThaiClass == "trống";
 
-                <div class="table-card @trangThaiClass" 
-                     data-id="@ban.BanPhongId" 
-                     data-name="@ban.TenBanPhong"
-                     data-available="@isAvailable.ToString().ToLower()">
-                    
-                    <div class="table-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm5 0v3h4V4h-4z"/>
-                        </svg>
-                    </div>
-                    <div class="table-card-details">
-                        <div class="table-card-number">Bàn số <strong>@ban.BanPhongId</strong></div>
+        <div class="restaurant-floor-plan">
+            <div class="area-entrance"></div>
+            <div class="area-window">🪟 Cửa sổ kính (View đường phố)</div>
+
+            <div class="table-map-grid">
+                @foreach (var ban in danhSachBan)
+                {
+                    string trangThaiClass = ban.TrangThai.ToLower().Replace("đ", "d").Replace(" ", "-");
+                    bool isAvailable = trangThaiClass == "trống";
+
+                    <div class="table-card @trangThaiClass"
+                         data-id="@ban.BanPhongId"
+                         data-name="@ban.TenBanPhong"
+                         data-available="@isAvailable.ToString().ToLower()"
+                         title="@ban.TenBanPhong (@ban.SucChua ghế)">
+
+                        <div class="table-card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M4 18v3h3v-3h10v3h3v-6H4v3zm16-8h-2V7c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v3H4v6h16v-6z" />
+                            </svg>
+                        </div>
                         <div class="table-card-name">@ban.TenBanPhong</div>
-                        <div class="table-card-status">@ban.TrangThai</div>
+                        <div class="table-card-capacity">(@ban.SucChua người)</div>
                     </div>
-                </div>
-            }
+                }
+            </div>
+
+            <div class="area-kitchen">👨‍🍳 Khu vực Bếp & Quầy Bar</div>
+        </div>
+
+        <div class="map-legend">
+            <div class="legend-item"><div class="legend-color available"></div><span>Trống</span></div>
+            <div class="legend-item"><div class="legend-color occupied"></div><span>Đã đặt/Bận</span></div>
+            <div class="legend-item"><div class="legend-color selected"></div><span>Đang chọn</span></div>
         </div>
     </div>
 </div>
-
 
 @section Scripts {
     <link rel="stylesheet" href="~/css/datban-map.css" asp-append-version="true" />
