@@ -192,10 +192,14 @@
                 @foreach (var mon in danhSachMonAn)
                 {
                     <div class="monan-item" data-monan-category-id="@mon.DanhMucId">
+
+                        <img class="monan-item-img" src="~/anh/@(string.IsNullOrEmpty(mon.HinhAnhUrl) ? "placeholder.jpg" : mon.HinhAnhUrl)" alt="@mon.TenMon" />
+
                         <div class="monan-item-info">
                             <strong>@mon.TenMon</strong>
                             <span>@mon.DonGia.ToString("n0")đ</span>
                         </div>
+
                         <button type="button" class="btn-add-mon"
                                 data-id="@mon.MonAnId"
                                 data-name="@mon.TenMon"
