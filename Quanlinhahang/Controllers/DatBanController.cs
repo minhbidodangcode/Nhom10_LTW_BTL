@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Quanlinhahang.Models;
+using Quanlinhahang.Models; // Đảm bảo namespace này đúng
 using System.Security.Cryptography;
 using System.Text;
 
@@ -16,7 +16,8 @@ namespace Quanlinhahang.Controllers
             _context = context;
         }
 
-        // ----------- DTOs nhận từ client -------------
+        // ----------- DTOs nhận từ client (Đã cập nhật) -------------
+        // DTO này phải khớp với JavaScript payload
         public class BookingItem
         {
             public int? id { get; set; } // MonAnID
@@ -27,18 +28,23 @@ namespace Quanlinhahang.Controllers
 
         public class BookingRequest
         {
+            // Thông tin từ AuthState
             public string? username { get; set; }
-            public string? bookingDate { get; set; }
+
+            // Thông tin từ Form
+            public string? bookingDate { get; set; } // yyyy-MM-dd
             public string? timeSlot { get; set; }
             public int? guestCount { get; set; }
-            public string? tableType { get; set; }
+            public int? BanPhongId { get; set; } // Lấy từ input ẩn (sơ đồ bàn)
             public string? note { get; set; }
             public List<BookingItem>? items { get; set; }
         }
 
+        // ----------- POST: /DatBan/Submit (VIẾT LẠI HOÀN CHỈNH) -------------
         [HttpPost("Submit")]
         public async Task<IActionResult> Submit([FromBody] BookingRequest req)
         {
+            // 1. Validation cơ bản
             if (string.IsNullOrWhiteSpace(req.username))
                 return Unauthorized(new { success = false, message = "Bạn cần đăng nhập để đặt bàn." });
 
@@ -53,6 +59,7 @@ namespace Quanlinhahang.Controllers
             if (items.Count == 0)
                 return Json(new { success = false, message = "Giỏ hàng rỗng, không thể đặt bàn." });
 
+            // 2. Resolve FKs
             if (!DateOnly.TryParse(req.bookingDate, out DateOnly bookingDateOnly))
                 return Json(new { success = false, message = "Ngày đặt không hợp lệ" });
 
@@ -60,16 +67,25 @@ namespace Quanlinhahang.Controllers
             if (khungGioId == 0)
                 return Json(new { success = false, message = "Không tìm thấy khung giờ hợp lệ" });
 
-            int? banPhongId = await ResolveBanPhongId(req.tableType, req.guestCount ?? 1);
-            if (banPhongId == null && !string.IsNullOrWhiteSpace(req.tableType) && req.tableType != "Không yêu cầu")
-                return Json(new { success = false, message = "Không tìm thấy bàn/phòng trống phù hợp với yêu cầu của bạn." });
+            int? banPhongId = req.BanPhongId;
+
+            if (banPhongId.HasValue && banPhongId > 0)
+            {
+                var banDaChon = await _context.BanPhongs.FindAsync(banPhongId.Value);
+                if (banDaChon == null || banDaChon.TrangThai != "Trống")
+                {
+                    return Json(new { success = false, message = "Bàn bạn vừa chọn đã bị đặt. Vui lòng tải lại trang và chọn bàn khác." });
+                }
+            }
 
             decimal tongTienDuKien = items.Sum(i => (i.price ?? 0) * (i.qty ?? 1));
 
+            // 3. Bắt đầu Transaction (Lưu vào 3 Bảng)
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
+                    // BƯỚC A: TẠO DATBAN
                     var datBan = new DatBan
                     {
                         KhachHangId = khachHang.KhachHangId,
@@ -79,24 +95,25 @@ namespace Quanlinhahang.Controllers
                         SoNguoi = req.guestCount ?? 1,
                         TongTienDuKien = tongTienDuKien,
                         YeuCauDacBiet = req.note,
-                        TrangThai = "Chờ xác nhận",
+                        TrangThai = "Chờ xác nhận", // Trạng thái của DatBan
                         NgayTao = DateTime.Now
                     };
-
                     _context.DatBans.Add(datBan);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(); // Lưu để lấy DatBanID
+
+                    // BƯỚC B: TẠO HOADON (liên kết với DatBan)
                     var hoaDon = new HoaDon
                     {
                         DatBanId = datBan.DatBanId,
-                        TaiKhoanId = khachHang.TaiKhoanId,
+                        TaiKhoanId = khachHang.TaiKhoanId, // Gán Tài khoản của khách
                         NgayLap = DateTime.Now,
-                        TongTien = tongTienDuKien,
+                        TongTien = tongTienDuKien, // Tổng tiền từ giỏ hàng
                         GiamGia = 0,
                         DiemCong = 0,
                         DiemSuDung = 0,
-                        HinhThucThanhToan = null,
-                        TrangThaiId = 1,
-                        Vat = 0.10m, 
+                        HinhThucThanhToan = null, // Chưa thanh toán
+                        TrangThaiId = 1, // ID = 1 (Chờ xác nhận)
+                        Vat = 0.10m, // VAT mặc định
                         LoaiDichVu = "Tại chỗ"
                     };
                     _context.HoaDons.Add(hoaDon);
@@ -134,7 +151,6 @@ namespace Quanlinhahang.Controllers
                 {
                     await transaction.RollbackAsync();
 
-                    // Trả về lỗi chi tiết (InnerException) để dễ gỡ lỗi
                     string errorMessage = ex.Message;
                     if (ex.InnerException != null)
                     {
@@ -150,6 +166,7 @@ namespace Quanlinhahang.Controllers
             }
         }
 
+        // ----------- HÀM PHỤ: tìm ID khung giờ theo tên -------------
         private async Task<int> ResolveKhungGioId(string? timeSlot)
         {
             if (string.IsNullOrWhiteSpace(timeSlot)) return 0;
@@ -165,8 +182,10 @@ namespace Quanlinhahang.Controllers
             return khungGio?.KhungGioId ?? 0;
         }
 
+        // ----------- HÀM PHỤ: tìm ID Bàn/Phòng theo loại và sức chứa -------------
         private async Task<int?> ResolveBanPhongId(string? tableType, int guestCount)
         {
+            // Bỏ qua nếu không chọn
             if (string.IsNullOrWhiteSpace(tableType) || tableType == "Không yêu cầu")
                 return null;
 

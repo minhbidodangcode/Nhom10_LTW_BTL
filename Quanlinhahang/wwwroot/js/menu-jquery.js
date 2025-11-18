@@ -40,7 +40,6 @@ $(function () {
     }
 
     /* -------------------- FILTERS & REVEAL -------------------- */
-    // each time get current cards to handle server render changes
     function getCards() {
         return $('.menu-card');
     }
@@ -66,10 +65,8 @@ $(function () {
         getCards().each(function () {
             const $c = $(this);
             ensureCardAttributes($c);
-
             const hay = (($c.attr('data-search') || $c.text()) + '').toLowerCase();
             const itemCat = (($c.attr('data-cat') || '') + '').toLowerCase();
-
             const matchText = !q || hay.indexOf(q) !== -1;
             const matchCat = !cat || cat === '' || cat === 'all' || itemCat === cat || itemCat === (cat.toLowerCase());
 
@@ -96,7 +93,6 @@ $(function () {
         applyFiltersClient();
     });
 
-    // reveal animation on load/scroll
     $(window).on('scroll load', function () {
         getCards().each(function () {
             const $c = $(this);
@@ -106,32 +102,29 @@ $(function () {
         });
     });
 
-    // init ensure attrs
     getCards().each(function () { ensureCardAttributes($(this)); });
     applyFiltersClient();
 
     /* -------------------- CART -------------------- */
-    // cart as object map in-memory
     let cart = readCartObject();
 
     function updateCartDisplay() {
         const $items = $("#cartItems");
         $items.empty();
         let total = 0;
-        let count = 0; // Vẫn tính tổng số lượng
-        let uniqueItemCount = 0; // SỐ MÓN KHÁC NHAU
+        let count = 0; // Tổng số lượng
+        let uniqueItemCount = 0; // Số món khác nhau
 
         const values = Object.values(cart);
         if (values.length === 0) {
             $items.html('<div class="empty-cart" style="padding:12px;color:#666">Giỏ hàng trống.</div>');
         } else {
-            uniqueItemCount = values.length; // Lấy số món khác nhau
+            uniqueItemCount = values.length; // Lấy số món
             values.forEach(item => {
                 const lineTotal = Number(item.qty || 0) * Number(item.price || 0);
                 total += lineTotal;
-                count += Number(item.qty || 0); // Tính tổng số lượng
+                count += Number(item.qty || 0);
 
-                // render row
                 $items.append(`
                     <div class="cart-item" data-id="${item.id}">
                         <div class="cart-info">
@@ -151,9 +144,12 @@ $(function () {
         }
 
         $("#cartTotal").text(formatVND(total));
-        $("#cart-count").text(uniqueItemCount); // SỬA: Hiển thị số món khác nhau
 
-        // persist
+        // === SỬA LỖI: Cập nhật CẢ HAI ID ===
+        $("#cart-count").text(uniqueItemCount); // (Cho header của Menu.cshtml)
+        $("#cartCount").text(uniqueItemCount);  // (Cho _Navbar.cshtml chung)
+        // =================================
+
         writeCartObject(cart);
     }
 
@@ -164,7 +160,6 @@ $(function () {
         updateCartDisplay();
     }
 
-    // click order button (delegation)
     $(document).on("click", ".order-btn", function (e) {
         e.preventDefault();
         const $btn = $(this);
@@ -172,14 +167,11 @@ $(function () {
         const name = $btn.data("name") || $btn.closest('.menu-card').find('h3, h4').first().text().trim();
         const price = Number($btn.data("price")) || Number($btn.attr('data-price')) || 0;
         if (!id) {
-            // fallback: generate id from name
             const gen = name ? name.trim().toLowerCase().replace(/\s+/g, '-') : 'item-' + Date.now();
             addToCart(gen, name, price, 1);
         } else {
             addToCart(id, name, price, 1);
         }
-
-        // toast
         const $t = $('#toast');
         if ($t.length) {
             $t.text('Đã thêm "' + (name || 'món') + '" vào giỏ');
@@ -188,7 +180,6 @@ $(function () {
         }
     });
 
-    // qty +/- and remove
     $(document).on("click", ".qty-btn", function (e) {
         e.stopPropagation();
         const id = String($(this).data("id"));
@@ -223,33 +214,30 @@ $(function () {
             alert("Giỏ hàng trống!");
             return;
         }
-        // lưu lại (đã tự lưu) và chuyển trang Đặt bàn
         writeCartObject(cart);
         window.location.href = "/Home/DatBan";
     });
 
     updateCartDisplay();
+
     /* -------------------- CART DRAWER TOGGLE -------------------- */
     $(function () {
         const $drawer = $("#cartDrawer");
         const $btnOpen = $("#cartBtn");
         const $btnClose = $("#close-cart");
 
-        // Mở giỏ hàng
         $btnOpen.on("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
             $drawer.addClass("active");
         });
 
-        // Đóng giỏ hàng
         $btnClose.on("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
             $drawer.removeClass("active");
         });
 
-        // Click ra ngoài để đóng
         $(document).on("click", function (e) {
             if ($(e.target).closest("#cartDrawer, #cartBtn").length === 0) {
                 $drawer.removeClass("active");

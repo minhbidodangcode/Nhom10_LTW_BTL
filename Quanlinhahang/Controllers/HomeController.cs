@@ -70,8 +70,9 @@ namespace Quanlinhahang.Controllers
             var viewModel = new DatBanViewModel
             {
                 DanhSachBan = await _db.BanPhongs
-                                          .Include(b => b.LoaiBanPhong)
-                                          .ToListAsync()
+                                  .Include(b => b.LoaiBanPhong)
+                                  .OrderBy(b => b.BanPhongId) 
+                                  .ToListAsync()
             };
 
             return View(viewModel);

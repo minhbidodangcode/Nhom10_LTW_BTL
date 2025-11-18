@@ -184,6 +184,13 @@ body {
     overflow-y: auto;
 }
 
+#addMonAnModal .modal-content {
+    width: 90%;
+    max-width: 700px;
+    background: #1f1f1f;
+    border-color: var(--border-color);
+}
+
 @keyframes slideIn {
     from {
         transform: translateY(-50px);

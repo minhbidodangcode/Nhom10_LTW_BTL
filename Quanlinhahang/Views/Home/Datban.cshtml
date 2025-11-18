@@ -1,5 +1,6 @@
-﻿@{
-    ViewBag.Title = "Đặt bàn";
+﻿@model Quanlinhahang.Models.ViewModels.DatBanViewModel
+@{
+    ViewData["Title"] = "Đặt bàn";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -12,7 +13,7 @@
                 <div>#</div>
                 <div>Món ăn</div>
                 <div>Giá</div>
-                <div>SL</div>
+                <div>Số lượng</div>
                 <div>Thành tiền</div>
                 <div>Xóa</div>
             </div>
@@ -37,7 +38,7 @@
 
             <form id="bookingForm">
                 <div class="form-row">
-
+                    
                     <div class="form-group">
                         <label for="bookingDate">Ngày đặt</label>
                         <input type="date" id="bookingDate" name="bookingDate"
@@ -60,13 +61,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="tableType">Loại bàn / phòng</label>
-                        <select id="tableType" name="tableType" class="form-select">
-                            <option value="">Không yêu cầu</option>
-                            <option value="Thuong">Bàn thường</option>
-                            <option value="Vip">Bàn VIP</option>
-                            <option value="PhongRieng">Phòng riêng</option>
-                        </select>
+                        <label for="tableSelection">Chọn bàn (Tùy chọn)</label>
+
+                        <button type="button" class="btn-select-table" id="openTableMapBtn">Chọn bàn từ sơ đồ</button>
+
+                        <input type="hidden" id="selectedBanPhongId" name="BanPhongId" />
                     </div>
 
                     <div class="form-group full-width">
@@ -86,38 +85,59 @@
 </div>
 
 <div class="modal" id="bookingModal">
-
     <div class="modal-content">
-
         <div class="modal-icon">
-
             <svg viewBox="0 0 52 52">
-
                 <circle cx="26" cy="26" r="25" stroke="#22c55e" stroke-width="3" fill="none" />
-
                 <path d="M16 27l6 6 14-14" stroke="#22c55e" stroke-width="3" fill="none" />
-
             </svg>
-
         </div>
-
         <h2>Đặt bàn thành công!</h2>
-
         <p>
-
             Cảm ơn bạn đã đặt bàn tại Nhà hàng BTL.<br />
-
             Chúng tôi sẽ liên hệ xác nhận lại trong thời gian sớm nhất.
-
         </p>
-
         <button class="btn-close" id="closeModalBtn">Đóng</button>
-
     </div>
+</div>
 
+<div class="modal" id="tableMapModal">
+    <div class="modal-content table-modal-content">
+        <button class="close-btn" id="closeTableMapModal">&times;</button>
+        <div class="modal-header">
+            <h2>Chọn bàn</h2>
+            <p>Vui lòng chọn một bàn còn trống.</p>
+        </div>
+        
+        <div class="table-map-container">
+            @foreach (var ban in Model.DanhSachBan)
+            {
+                string trangThaiClass = ban.TrangThai.ToLower().Replace("đ", "d").Replace(" ", "-");
+                bool isAvailable = trangThaiClass == "trống";
+
+                <div class="table-card @trangThaiClass" 
+                     data-id="@ban.BanPhongId" 
+                     data-name="@ban.TenBanPhong"
+                     data-available="@isAvailable.ToString().ToLower()">
+                    
+                    <div class="table-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm5 0v3h4V4h-4z"/>
+                        </svg>
+                    </div>
+                    <div class="table-card-details">
+                        <div class="table-card-number">Bàn số <strong>@ban.BanPhongId</strong></div>
+                        <div class="table-card-name">@ban.TenBanPhong</div>
+                        <div class="table-card-status">@ban.TrangThai</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 
 @section Scripts {
+    <link rel="stylesheet" href="~/css/datban-map.css" asp-append-version="true" />
     <script src="~/js/datban-jquery.js" asp-append-version="true"></script>
 }

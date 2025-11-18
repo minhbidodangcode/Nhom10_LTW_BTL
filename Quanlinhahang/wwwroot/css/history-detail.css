@@ -1,10 +1,9 @@
 ﻿/* =======================================
-   CSS CHO TRANG CHI TIẾT LỊCH SỬ
+   CSS CHO TRANG CHI TIẾT LỊCH SỬ (ĐÃ SỬA)
    ======================================= */
 
 .detail-grid {
     display: grid;
-    /* Chia 2 cột trên desktop */
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-bottom: 20px;
@@ -26,6 +25,7 @@
         font-family: "Playfair Display", serif;
     }
 
+    /* Style cho các <p> (Thông tin Khách hàng) */
     .detail-box p {
         margin: 12px 0;
         display: flex;
@@ -33,20 +33,47 @@
         font-size: 0.95rem;
     }
 
-        /* Nhãn (vd: "Họ và tên:") */
         .detail-box p strong {
             color: #999;
             margin-right: 15px;
             font-weight: 500;
         }
 
-        /* Giá trị (vd: "Hà Bình Minh") */
         .detail-box p span {
             color: #fff;
             font-weight: 600;
             text-align: right;
-            flex-shrink: 0; /* Ngăn giá trị bị vỡ dòng */
+            flex-shrink: 0;
         }
+
+    /* Style cho các <input> và <select> trong .form-group (Thông tin Đặt bàn) */
+    .detail-box .form-group {
+        margin-bottom: 15px;
+    }
+
+        .detail-box .form-group label {
+            font-weight: 600;
+            color: var(--text-gray, #b0b0b0);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+/* === SỬA LỖI: STYLE KHI CHỈ XEM (DISABLED/READONLY) === */
+#infoFieldset[disabled] .form-input,
+#infoFieldset[disabled] .form-select,
+.form-input[readonly] {
+    background-color: transparent !important;
+    /* Thêm viền vàng */
+    border: 1px solid var(--primary-color, #c59d5f) !important;
+    color: #e8e8e8 !important;
+    /* Thêm lùi vào (padding) */
+    padding: 0.9rem 1rem !important;
+    cursor: default;
+    opacity: 0.7; /* Hơi mờ để biết là chỉ đọc */
+    -webkit-text-fill-color: #e8e8e8 !important;
+    box-shadow: none !important;
+}
 
 /* Bảng chi tiết món ăn */
 .order-details-table {
@@ -72,14 +99,12 @@
         text-align: right;
     }
 
-/* Tổng tiền thanh toán */
 .final-total {
     font-size: 1.2rem;
     color: #c59d5f;
     font-weight: 700;
 }
 
-/* Link quay lại */
 .back-link {
     color: #c59d5f;
     margin-top: 20px;
@@ -92,9 +117,125 @@
         text-decoration: underline;
     }
 
-/* Responsive cho mobile */
 @media (max-width: 768px) {
     .detail-grid {
         grid-template-columns: 1fr; /* Chuyển thành 1 cột */
     }
+}
+
+.add-item-row {
+    display: none; /* Ẩn mặc định */
+    text-align: center;
+    padding: 15px;
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px dashed var(--success-green, #22c55e);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    color: var(--success-green, #22c55e);
+    font-weight: 600;
+}
+
+    .add-item-row:hover {
+        background: rgba(40, 167, 69, 0.2);
+    }
+
+#infoFieldset:not([disabled]) .add-item-row {
+    display: block; /* Chỉ hiện khi bật chế độ Sửa */
+}
+
+/* Modal Thực đơn thu nhỏ */
+#addMonAnModal {
+    /* (Style Modal lấy từ navbar.css) */
+}
+
+    #addMonAnModal .table-modal-content {
+        max-width: 600px; /* Kích thước modal nhỏ hơn */
+    }
+/* =======================================
+   CSS CHO MODAL THÊM MÓN (LAYOUT 2 CỘT)
+   ======================================= */
+
+/* Layout 2 cột */
+.menu-modal-layout {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* Cột 1: Danh mục */
+.menu-modal-sidebar {
+    flex-basis: 200px; /* Độ rộng cột danh mục */
+    flex-shrink: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.category-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    background: var(--dark-bg);
+    color: var(--text-gray);
+    border-radius: 8px;
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+    .category-btn:hover {
+        background: #333;
+        color: var(--text-light);
+    }
+
+    .category-btn.active {
+        background: var(--primary-color, #c59d5f);
+        color: #000;
+        font-weight: 700;
+        border-color: var(--primary-color, #c59d5f);
+    }
+
+/* Cột 2: Món ăn */
+.monan-list-container {
+    flex-grow: 1; /* Cột món ăn chiếm phần còn lại */
+    max-height: 50vh;
+    overflow-y: auto;
+    background: var(--darker-bg);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.monan-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--dark-bg);
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.monan-item-info strong {
+    color: var(--text-light);
+    display: block;
+}
+
+.monan-item-info span {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+.btn-add-mon {
+    background: var(--primary-color, #ffd700);
+    color: #000;
+    border: none;
+    padding: 8px 15px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
 }

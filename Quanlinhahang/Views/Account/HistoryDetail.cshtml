@@ -1,94 +1,217 @@
 ﻿@model Quanlinhahang.Models.DatBan
+@using Quanlinhahang.Models;
 @{
     ViewData["Title"] = $"Chi tiết Đơn hàng #{Model.DatBanId}";
     var hoaDon = Model.HoaDons.FirstOrDefault();
+    bool canEdit = (Model.TrangThai == "Chờ xác nhận" && hoaDon?.TrangThaiId == 1);
+
+    var danhSachBan = ViewBag.DanhSachBan as List<BanPhong> ?? new List<BanPhong>();
+    var danhSachMonAn = ViewBag.DanhSachMonAn as List<MonAn> ?? new List<MonAn>();
+    var danhSachDanhMuc = danhSachMonAn
+        .Where(m => m.DanhMuc != null)
+        .Select(m => m.DanhMuc)
+        .DistinctBy(d => d.DanhMucId)
+        .OrderBy(d => d.DanhMucId);
+
+    var itemsList = (hoaDon?.ChiTietHoaDons ?? new List<ChiTietHoaDon>());
+
+    var itemsToShow = itemsList.Select(ct => new
+    {
+        ct.MonAnId,
+        TenMon = ct.MonAn?.TenMon,
+        ct.SoLuong,
+        ct.DonGia,
+        ThanhTien = ct.ThanhTien
+    });
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/account-info.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/history.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/history-detail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/datban-map.css" asp-append-version="true" />
 }
 
 <div class="register-container">
     <div id="historyDetailPage">
-
         <h2 class="history-title">Chi tiết Đơn hàng: #@Model.DatBanId</h2>
 
-        <div class="history-content">
-            <div class="detail-grid">
+        <form id="updateBookingForm">
+            <div class="history-content">
+                <div id="infoError" class="error-message" style="display:none;"></div>
+                <div id="infoSuccess" class="success-message" style="display:none;"></div>
 
-                <div class="detail-box">
-                    <h3>Thông tin Đặt bàn</h3>
-                    <p>
-                        <strong>Trạng thái:</strong>
-                        <span>
-                            @(hoaDon?.TrangThai?.TenTrangThai ?? Model.TrangThai)
-                        </span>
-                    </p>
-                    <p><strong>Ngày đến:</strong> <span>@Model.NgayDen.ToString("dd/MM/yyyy")</span></p>
-                    <p><strong>Khung giờ:</strong> <span>@Model.KhungGio.TenKhungGio</span></p>
-                    <p><strong>Số người:</strong> <span>@Model.SoNguoi</span></p>
-                    <p><strong>Bàn/Phòng:</strong> <span>@(Model.BanPhong?.TenBanPhong ?? "Chưa xếp bàn")</span></p>
-                    <p><strong>Ghi chú:</strong> <span>@(Model.YeuCauDacBiet ?? "Không có")</span></p>
-                </div>
+                <fieldset id="infoFieldset" disabled>
 
-                <div class="detail-box">
-                    <h3>Thông tin Khách hàng</h3>
-                    <p><strong>Họ và tên:</strong> <span>@(Model.KhachHang?.HoTen ?? "N/A")</span></p>
-                    <p><strong>Số điện thoại:</strong> <span>@(Model.KhachHang?.SoDienThoai ?? "N/A")</span></p>
-                    <p><strong>Email:</strong> <span>@(Model.KhachHang?.Email ?? "N/A")</span></p>
-                </div>
-            </div>
+                    <div class="detail-grid">
 
-            <div class="detail-box" style="margin-top: 20px;">
-                <h3>Chi tiết Thanh toán</h3>
+                        <div class="detail-box">
+                            <h3>Thông tin Đặt bàn</h3>
+                            <div class="form-group">
+                                <label>Trạng thái</label>
+                                <input type="text" class="form-input" value="@(hoaDon?.TrangThai?.TenTrangThai ?? Model.TrangThai)" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày đến</label>
+                                <input type="date" id="bookingDate" class="form-input" value="@Model.NgayDen.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Khung giờ</label>
+                                <select id="timeSlot" class="form-select" required>
+                                    <option value="Trua" selected="@(Model.KhungGio.TenKhungGio == "Trưa")">Trưa (11:00 - 13:30)</option>
+                                    <option value="Toi" selected="@(Model.KhungGio.TenKhungGio == "Tối")">Tối (18:00 - 21:30)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Số người</label>
+                                <input type="number" id="guestCount" class="form-input" value="@Model.SoNguoi" min="1" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Bàn/Phòng</label>
+                                <div class="selected-table-display" id="selectedTableDisplay">@(Model.BanPhong?.TenBanPhong ?? "Chưa chọn bàn")</div>
+                                <button type="button" class="btn-select-table" id="openTableMapBtn">Thay đổi bàn</button>
+                                <input type="hidden" id="selectedBanPhongId" value="@Model.BanPhongId" />
+                            </div>
+                        </div>
 
-                @if (hoaDon != null && hoaDon.ChiTietHoaDons.Any())
-                {
-                    <table class="order-details-table">
-                        <thead>
-                            <tr>
-                                <th>Tên món</th>
-                                <th class="align-right">Số lượng</th>
-                                <th class="align-right">Đơn giá</th>
-                                <th class="align-right">Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in hoaDon.ChiTietHoaDons)
-                            {
+                        <div class="detail-box">
+                            <h3>Thông tin Khách hàng</h3>
+                            <p><strong>Họ và tên:</strong> <span>@(Model.KhachHang?.HoTen ?? "N/A")</span></p>
+                            <p><strong>Số điện thoại:</strong> <span>@(Model.KhachHang?.SoDienThoai ?? "N/A")</span></p>
+                            <p><strong>Email:</strong> <span>@(Model.KhachHang?.Email ?? "N/A")</span></p>
+                        </div>
+                    </div>
+
+                    <div class="detail-box" style="margin-top: 20px;">
+                        <h3>Chi tiết Món ăn</h3>
+
+                        <table class="order-details-table">
+                            <thead>
                                 <tr>
-                                    <td>@(item.MonAn?.TenMon ?? "Món đã bị xóa")</td>
-                                    <td class="align-right">@item.SoLuong</td>
-                                    <td class="align-right">@item.DonGia.ToString("n0")đ</td>
-                                    <td class="align-right">@item.ThanhTien.ToString("n0")đ</td>
+                                    <th>Món ăn</th>
+                                    <th class="align-right">Giá</th>
+                                    <th style="text-align:center;">Số lượng</th>
+                                    <th class="align-right">Thành tiền</th>
+                                    <th style="width: 50px;"></th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="summaryBodyItems">
+                            </tbody>
+                        </table>
 
-                    <hr style="border-color: #444; margin: 20px 0;">
+                        <div class="add-item-row" id="openAddMonAnModal">
+                            + Thêm món
+                        </div>
 
-                    <p><strong>Tổng tiền món:</strong> <span>@hoaDon.TongTien.ToString("n0")đ</span></p>
-                    <p><strong>Giảm giá:</strong> <span>- @hoaDon.GiamGia.ToString("n0")đ</span></p>
-                    <p>
-                        <strong>Tổng thanh toán:</strong>
-                        <span class="final-total">@((hoaDon.TongTien - hoaDon.GiamGia).ToString("n0"))đ</span>
-                    </p>
-                    <p><strong>Hình thức:</strong> <span>@(hoaDon.HinhThucThanhToan ?? "N/A")</span></p>
-                }
-                else
-                {
-                    <p><strong>Tổng tiền (dự kiến):</strong> <span>@Model.TongTienDuKien?.ToString("n0")đ</span></p>
-                    <p>Chi tiết món ăn sẽ hiển thị sau khi hóa đơn được tạo.</p>
-                }
+                        <div class="summary-total" style="border-top: 1px solid #444; padding-top: 15px;">
+                            <span>Tổng cộng:</span>
+                            <span class="total-amount" id="summaryTotal">@hoaDon?.TongTien.ToString("n0")đ</span>
+                        </div>
+                    </div>
+
+                </fieldset>
+
+                <div class="button-group" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <a asp-action="History" asp-controller="Account" class="back-link" style="color: #c59d5f;">
+                        ← Quay lại Lịch sử
+                    </a>
+
+                    <div>
+                        @if (canEdit)
+                        {
+                            <button type="button" class="btn-submit" id="btnEdit" style="background-color: var(--primary-color, #ffd700); color: #000;">Chỉnh sửa đơn</button>
+                            <button type="submit" class="btn-submit" id="btnSave" style="display:none;">Lưu thay đổi</button>
+                            <button type="button" class="btn-reset" id="btnCancel" style="display:none;">Hủy</button>
+                        }
+                    </div>
+                </div>
+
             </div>
+        </form>
+    </div>
+</div>
 
-            <a asp-action="History" asp-controller="Account" class="back-link">
-                ← Quay lại Lịch sử
-            </a>
+<div class="modal" id="tableMapModal">
+    <div class="modal-content table-modal-content">
+        <button class="close-btn" id="closeTableMapModal">&times;</button>
+        <div class="modal-header">
+            <h2>Chọn bàn</h2>
+            <p>Vui lòng chọn một bàn còn trống.</p>
+        </div>
 
+        <div class="table-map-container">
+            @foreach (var ban in danhSachBan)
+            {
+                string trangThaiClass = ban.TrangThai.ToLower().Replace("đ", "d").Replace(" ", "-");
+                bool isAvailable = trangThaiClass == "trống";
+
+                <div class="table-card @trangThaiClass"
+                     data-id="@ban.BanPhongId"
+                     data-name="@ban.TenBanPhong"
+                     data-available="@isAvailable.ToString().ToLower()">
+
+                    <div class="table-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm5 0v3h4V4h-4z" />
+                        </svg>
+                    </div>
+                    <div class="table-card-details">
+                        <div class="table-card-number">Bàn số <strong>@ban.BanPhongId</strong></div>
+                        <div class="table-card-name">@ban.TenBanPhong</div>
+                        <div class="table-card-status">@ban.TrangThai</div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<div class="modal" id="addMonAnModal">
+    <div class="modal-content table-modal-content">
+        <button class="close-btn" id="closeAddMonAnModal">&times;</button>
+        <div class="modal-header">
+            <h2>Thực đơn</h2>
+            <p>Chọn món để thêm vào đơn hàng.</p>
+        </div>
+
+        <div class="menu-modal-layout">
+
+            <div class="menu-modal-sidebar">
+                <button class="category-btn active" data-category-id="all">
+                    Tất cả
+                </button>
+                @foreach (var danhMuc in danhSachDanhMuc)
+                {
+                    <button class="category-btn" data-category-id="@danhMuc.DanhMucId">
+                        @danhMuc.TenDanhMuc
+                    </button>
+                }
+            </div>
+
+            <div class="monan-list-container" id="addMonAnList">
+                @foreach (var mon in danhSachMonAn)
+                {
+                    <div class="monan-item" data-monan-category-id="@mon.DanhMucId">
+                        <div class="monan-item-info">
+                            <strong>@mon.TenMon</strong>
+                            <span>@mon.DonGia.ToString("n0")đ</span>
+                        </div>
+                        <button type="button" class="btn-add-mon"
+                                data-id="@mon.MonAnId"
+                                data-name="@mon.TenMon"
+                                data-price="@mon.DonGia">
+                            Chọn
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var originalItemsData = @Html.Raw(Json.Serialize(itemsToShow));
+    </script>
+    <script src="~/js/history-detail.js" asp-append-version="true"></script>
+}

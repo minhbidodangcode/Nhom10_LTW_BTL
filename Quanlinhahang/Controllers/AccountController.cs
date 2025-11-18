@@ -537,7 +537,7 @@ public class AccountController : Controller
                 .ThenInclude(h => h.TrangThai)
             .Include(d => d.HoaDons)
                 .ThenInclude(h => h.ChiTietHoaDons)
-                    .ThenInclude(ct => ct.MonAn) 
+                    .ThenInclude(ct => ct.MonAn)
             .FirstOrDefaultAsync(d => d.DatBanId == datBanId);
 
         if (datBan == null)
@@ -545,9 +545,120 @@ public class AccountController : Controller
             return NotFound("Không tìm thấy đơn đặt bàn.");
         }
 
+        ViewBag.DanhSachBan = await _context.BanPhongs
+                                      .Include(b => b.LoaiBanPhong)
+                                      .OrderBy(b => b.BanPhongId)
+                                      .ToListAsync();
+
+        ViewBag.DanhSachMonAn = await _context.MonAns
+                                        .Where(m => m.TrangThai == "Còn bán")
+                                        .Include(m => m.DanhMuc)
+                                        .OrderBy(m => m.DanhMucId)
+                                        .ToListAsync();
         return View(datBan);
     }
 
+    private async Task<int> ResolveKhungGioId(string? timeSlot)
+    {
+        if (string.IsNullOrWhiteSpace(timeSlot)) return 0;
+        string key = timeSlot.Trim().ToLower();
+        if (key.Contains("trua") || key.Contains("trưa")) key = "Trưa";
+        else if (key.Contains("toi") || key.Contains("tối")) key = "Tối";
+        else return 0;
+        var khungGio = await _context.KhungGios
+            .FirstOrDefaultAsync(k => k.TenKhungGio.ToLower() == key.ToLower());
+        return khungGio?.KhungGioId ?? 0;
+    }
+    [HttpPost("UpdateBooking")]
+    public async Task<IActionResult> UpdateBooking([FromBody] UpdateBookingViewModel model)
+    {
+        // 1. Tìm đơn hàng
+        var datBan = await _context.DatBans
+            .Include(d => d.HoaDons)
+                .ThenInclude(h => h.ChiTietHoaDons)
+            .FirstOrDefaultAsync(d => d.DatBanId == model.DatBanId);
+
+        if (datBan == null || datBan.HoaDons.FirstOrDefault() == null)
+        {
+            return NotFound(new { success = false, message = "Không tìm thấy đơn hàng hoặc hóa đơn." });
+        }
+
+        var hoaDon = datBan.HoaDons.First();
+
+        // 2. Kiểm tra trạng thái
+        if (datBan.TrangThai != "Chờ xác nhận" && hoaDon.TrangThaiId != 1)
+        {
+            return BadRequest(new { success = false, message = "Không thể sửa đơn đã được xác nhận." });
+        }
+
+        // 3. Validation (Kiểm tra bàn, ngày, giờ...)
+        if (!DateOnly.TryParse(model.BookingDate, out DateOnly bookingDateOnly))
+            return Json(new { success = false, message = "Ngày đặt không hợp lệ" });
+
+        int khungGioId = await ResolveKhungGioId(model.TimeSlot);
+        if (khungGioId == 0)
+            return Json(new { success = false, message = "Khung giờ không hợp lệ" });
+
+        // (Bỏ qua kiểm tra bàn trống nếu bàn không thay đổi)
+        if (model.BanPhongId.HasValue && model.BanPhongId != datBan.BanPhongId)
+        {
+            var banDaChon = await _context.BanPhongs.FindAsync(model.BanPhongId.Value);
+            if (banDaChon == null || banDaChon.TrangThai != "Trống")
+            {
+                return Json(new { success = false, message = "Bàn bạn vừa chọn đã bị đặt." });
+            }
+        }
+
+        // 4. Bắt đầu Transaction
+        using (var transaction = await _context.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                // 4a. Cập nhật DatBan
+                datBan.NgayDen = bookingDateOnly;
+                datBan.KhungGioId = khungGioId;
+                datBan.SoNguoi = model.GuestCount;
+                datBan.BanPhongId = model.BanPhongId;
+
+                // 4b. Xóa ChiTietHoaDon cũ
+                _context.ChiTietHoaDons.RemoveRange(hoaDon.ChiTietHoaDons);
+                await _context.SaveChangesAsync();
+
+                // 4c. Thêm ChiTietHoaDon mới và tính tổng tiền
+                decimal newTotal = 0;
+                var newItems = new List<ChiTietHoaDon>();
+
+                foreach (var item in model.Items)
+                {
+                    var thanhTien = item.DonGia * item.SoLuong;
+                    newItems.Add(new ChiTietHoaDon
+                    {
+                        HoaDonId = hoaDon.HoaDonId,
+                        MonAnId = item.MonAnId,
+                        SoLuong = item.SoLuong,
+                        DonGia = item.DonGia,
+                        ThanhTien = thanhTien
+                    });
+                    newTotal += thanhTien;
+                }
+                _context.ChiTietHoaDons.AddRange(newItems);
+
+                // 4d. Cập nhật HoaDon
+                hoaDon.TongTien = newTotal;
+                datBan.TongTienDuKien = newTotal; // Đồng bộ
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Json(new { success = true, message = "Cập nhật đơn hàng thành công!" });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { success = false, message = "Lỗi server: " + ex.Message });
+            }
+        }
+    }
     // ==========================================================
     // HÀM HỖ TRỢ (PRIVATE)
     // ==========================================================

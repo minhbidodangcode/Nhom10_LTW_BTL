@@ -33,11 +33,7 @@ function saveCartArray(arr) {
     }
 }
 
-function cartTotal(arr) {
-    return (arr || []).reduce((s, it) => s + (Number(it.price || 0) * Number(it.qty || 0)), 0);
-}
-
-// === HÀM RENDER ĐÃ ĐƯỢC CẬP NHẬT ===
+// === HÀM RENDER TÓM TẮT (Đã có +/-/x) ===
 function renderSummary() {
     const data = getCartArray();
     const $body = $("#summaryBody");
@@ -55,7 +51,6 @@ function renderSummary() {
         const thanhTien = Number(item.price || 0) * Number(item.qty || 0);
         total += thanhTien;
 
-        // Cập nhật HTML để bao gồm các nút
         html += `
             <div class="summary-row" data-id="${item.id}">
                 <div class="summary-col">${idx + 1}</div>
@@ -78,6 +73,7 @@ function renderSummary() {
     $total.text(vnd(total));
 }
 
+// === HÀM CHÀO MỪNG (Kiểm tra đăng nhập) ===
 function renderUserGreeting() {
     const authRaw = getAuthState();
     const $box = $("#userGreetingBox");
@@ -106,9 +102,53 @@ $(document).ready(function () {
         return;
     }
 
-    // === THÊM CÁC HÀM XỬ LÝ SỰ KIỆN MỚI ===
+    // === LOGIC CHO MODAL CHỌN BÀN ===
+    const $tableMapModal = $("#tableMapModal");
+    const $hiddenInput = $("#selectedBanPhongId");
+    const $openTableMapBtn = $("#openTableMapBtn");
 
-    // Xử lý click nút +/-
+    $openTableMapBtn.on("click", function (e) {
+        e.preventDefault();
+        $tableMapModal.addClass("active");
+    });
+
+    $("#closeTableMapModal").on("click", function () {
+        $tableMapModal.removeClass("active");
+    });
+
+    $(".table-map-container").on("click", ".table-card", function () {
+        const $card = $(this);
+
+        if ($card.data("available") !== true) {
+            alert("Bàn này đang bận, vui lòng chọn bàn Trống.");
+            return;
+        }
+
+        // Kiểm tra xem có đang bấm vào bàn đã chọn không
+        if ($card.hasClass("selected")) {
+            // Bỏ chọn
+            $card.removeClass("selected");
+            $hiddenInput.val("");
+            // Sửa: Cập nhật text của nút bấm
+            $openTableMapBtn.text("Chọn bàn từ sơ đồ");
+            $openTableMapBtn.removeClass("selected"); // Xóa style "đã chọn"
+        } else {
+            // Chọn bàn mới
+            $(".table-card.selected").removeClass("selected");
+            $card.addClass("selected");
+            const selectedId = $card.data("id");
+            const selectedName = $card.data("name");
+
+            // Sửa: Cập nhật text của nút bấm
+            $hiddenInput.val(selectedId);
+            $openTableMapBtn.text(`Đã chọn: ${selectedName}`);
+            $openTableMapBtn.addClass("selected"); // Thêm style "đã chọn"
+
+            $tableMapModal.removeClass("active");
+        }
+    });
+
+    // === LOGIC CHO NÚT +/-/x TRONG TÓM TẮT ===
     $("#summaryBody").on("click", ".qty-btn", function (e) {
         e.preventDefault();
         const $btn = $(this);
@@ -125,15 +165,13 @@ $(document).ready(function () {
         }
 
         if (item.qty <= 0) {
-            // Nếu số lượng về 0, xóa món
             cart = cart.filter(i => String(i.id) !== String(id));
         }
 
-        saveCartArray(cart); // Lưu lại vào localStorage
-        renderSummary();     // Vẽ lại bảng tóm tắt
+        saveCartArray(cart);
+        renderSummary();
     });
 
-    // Xử lý click nút Xóa (x)
     $("#summaryBody").on("click", ".remove-btn", function (e) {
         e.preventDefault();
         const id = $(this).data("id");
@@ -145,10 +183,7 @@ $(document).ready(function () {
         }
     });
 
-    // === KẾT THÚC PHẦN THÊM MỚI ===
-
-
-    // (Giữ nguyên logic submit form của bạn)
+    // === LOGIC SUBMIT FORM ===
     $("#bookingForm").off("submit").on("submit", function (e) {
         e.preventDefault();
         let cart = getCartArray();
@@ -169,22 +204,17 @@ $(document).ready(function () {
 
             const bookingDate = $("#bookingDate").val();
             const timeSlot = $("#timeSlot").val();
-            const guestCount = parseInt($("#guestCount").val() || "1", 10);
-
-            if (!bookingDate) {
-                alert("Vui lòng chọn ngày đặt bàn.");
+            if (!bookingDate || !timeSlot) {
+                alert("Vui lòng chọn ngày đặt và khung giờ.");
                 return;
             }
 
             const payload = {
                 username: auth.username,
-                customerName: auth.fullName,
-                phone: 'NA',
-                email: 'NA',
                 bookingDate: bookingDate,
                 timeSlot: timeSlot,
-                guestCount: guestCount,
-                tableType: $("#tableType").val(),
+                guestCount: parseInt($("#guestCount").val() || "1", 10),
+                BanPhongId: parseInt($("#selectedBanPhongId").val()) || null, // Lấy ID bàn
                 note: $("#note").val(),
                 items: cartToSend.map(it => ({
                     id: it.id,
@@ -207,8 +237,7 @@ $(document).ready(function () {
                     if (res && res.success) {
                         localStorage.removeItem(LS_CART_KEY);
                         renderSummary();
-                        $("#bookingModal").addClass("active");
-
+                        $("#bookingModal").addClass("active"); // Sửa thành .addClass
                     } else {
                         const msg = (res && res.message) ? res.message : "Đặt bàn thất bại. Vui lòng thử lại.";
                         alert("Lỗi: " + msg);
@@ -224,7 +253,7 @@ $(document).ready(function () {
                     $submitBtn.prop("disabled", false);
                 }
             });
-        } // end submitWithCart
+        }
 
         if (!cart || cart.length === 0) {
             alert("Giỏ hàng trống! Không thể đặt bàn.");
@@ -234,9 +263,9 @@ $(document).ready(function () {
         }
     });
 
-    // (Giữ nguyên logic đóng modal của bạn)
+    // === LOGIC ĐÓNG MODAL ===
     $("#closeModalBtn").on("click", function () {
-        $("#bookingModal").fadeOut();
+        $("#bookingModal").removeClass("active"); // Sửa thành .removeClass
         window.location.href = "/Home/Menu";
     });
 });
